@@ -1,9 +1,12 @@
 from django.urls import path
-from .views import HomePageView, CartView, AddToCartView, UpdateCartView
+from . import views
+
+app_name = 'pos-system'
 
 urlpatterns = [
-    path('home/', HomePageView.as_view(), name='home'),
-    path('cart/', CartView.as_view(), name='cart'),
-    path('cart/add/<int:product_id>/', AddToCartView.as_view(), name='add_to_cart'),
-    path('cart/update/<int:item_id>/', UpdateCartView.as_view(), name='update_cart'),
+    path('', views.home, name='home'),
+    path('add/category/', views.add_category, name='add_category'),
+    path('category-list/', views.CategoryList.as_view(), name='category-list'),
+    path('edit-category/<int:category_id>', views.edit_category, name='edit_category'),
+    # path('cart/update/<int:item_id>/', UpdateCartView.as_view(), name='update_cart'),
 ]

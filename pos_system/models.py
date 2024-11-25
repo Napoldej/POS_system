@@ -59,6 +59,10 @@ class Order(models.Model):
     
 class Categories(models.Model):
     category_name = models.CharField(max_length= 100, null = False, blank = False)
+    description = models.TextField(null = False, blank = False, max_length= 1000, default= "")
+    
+    def __str__(self):
+        return f"{self.category_name}"
     
 class Product(models.Model):
     product_name = models.CharField(max_length= 100, null = False, blank = False)
