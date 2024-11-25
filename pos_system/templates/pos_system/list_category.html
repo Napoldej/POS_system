@@ -1,0 +1,17 @@
+<table border = 1>
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>description</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for category in category_list%} 
+        <tr>
+            <td>{{category.category_name}}</td>
+            <td>{{category.description}}</td>
+            <td><a href = {% url 'pos-system:edit_category' category.id %}>edit</a></td>
+        <tr>
+    {% endfor %}
+    <tbody>
+</table>

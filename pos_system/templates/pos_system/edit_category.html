@@ -1,0 +1,8 @@
+<form action="{% url 'pos-system:edit_category' category_id%}" method="post">
+    {% csrf_token %}
+    {{form.category_name.label_tag}}
+    {{form.category_name}}<br>
+    {{form.description.label_tag}} <br>
+    {{form.description}} <br>
+    <button type = "submit">Save</button>
+</form>
