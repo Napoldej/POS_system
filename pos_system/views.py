@@ -45,7 +45,7 @@ def signup(request):
     return render(request, "registration/signup.html", {"form": form})
 
 
-@login_required
+
 class CategoryList(generic.ListView):
     template_name = 'pos_system/list_category.html'
     context_object_name = 'category_list'
@@ -84,7 +84,6 @@ def delete_category(request, category_id):
     category.delete()
     return redirect('pos-system:category-list')
 
-@login_required
 class ProductList(generic.ListView):
     template_name = 'pos_system/product_list.html'
     context_object_name = 'product_list'
