@@ -5,7 +5,9 @@ from .models import *
 from .forms import CategoryForm, ProductForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def home(request):
     number_category = len(Categories.objects.all())
     number_product = len(Product.objects.all())
@@ -17,11 +19,13 @@ def home(request):
     }
     return  render(request,'pos_system/home.html', context= context)
 
+
+@login_required
 def logout(request):
     logout(request)
     return redirect('pos-system:login')
 
-
+@login_required
 def signup(request):
     """Register a new user."""
     if request.method == "POST":
@@ -41,7 +45,7 @@ def signup(request):
     return render(request, "registration/signup.html", {"form": form})
 
 
-
+@login_required
 class CategoryList(generic.ListView):
     template_name = 'pos_system/list_category.html'
     context_object_name = 'category_list'
@@ -50,6 +54,7 @@ class CategoryList(generic.ListView):
         return Categories.objects.all()
     
 
+@login_required
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -59,6 +64,8 @@ def add_category(request):
     else:
         form = CategoryForm()
     return render(request, 'pos_system/add_category.html', {'form': form})
+
+@login_required
 
 def edit_category(request,category_id):
     category=  get_object_or_404(Categories, pk=category_id)
@@ -71,13 +78,13 @@ def edit_category(request,category_id):
         form = CategoryForm(instance=category)
     return render(request, 'pos_system/edit_category.html', {'form': form, 'category': category})
 
-
+@login_required
 def delete_category(request, category_id):
     category = get_object_or_404(Categories, id=category_id)
     category.delete()
     return redirect('pos-system:category-list')
 
-
+@login_required
 class ProductList(generic.ListView):
     template_name = 'pos_system/product_list.html'
     context_object_name = 'product_list'
@@ -85,7 +92,7 @@ class ProductList(generic.ListView):
     def get_queryset(self):
         return Product.objects.all()
     
-    
+@login_required
 def add_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST)
@@ -97,7 +104,7 @@ def add_product(request):
     return render(request, 'pos_system/add_product.html', {'form': form})
     
 
-
+@login_required
 def edit_product(request, product_id):
     product =  get_object_or_404(Product, id = product_id)
     if request.method == 'POST':
@@ -109,7 +116,7 @@ def edit_product(request, product_id):
         form = ProductForm(instance=product)
     return render(request, 'pos_system/edit_product.html', {'form': form, 'product': product})
 
-
+@login_required
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product.delete()
