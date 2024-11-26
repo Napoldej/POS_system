@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
 from django.http import HttpResponse
 from .models import *
-from .forms import CategoryForm
+from .forms import CategoryForm, ProductForm
 
 def home(request):
     number_category = len(Categories.objects.all())
@@ -52,6 +52,43 @@ def delete_category(request, category_id):
     return redirect('pos-system:category-list')
 
 
+class ProductList(generic.ListView):
+    template_name = 'pos_system/product_list.html'
+    context_object_name = 'product_list'
+    
+    def get_queryset(self):
+        return Product.objects.all()
+    
+    
+def add_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('pos-system:product-list')
+    else:
+        form = ProductForm()
+    return render(request, 'pos_system/add_product.html', {'form': form})
+    
+
+
+def edit_product(request, product_id):
+    product =  get_object_or_404(Product, id = product_id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('pos-system:product-list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'pos_system/edit_product.html', {'form': form, 'product': product})
+
+
+def delete_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    product.delete()
+    return redirect('pos-system:product-list')
+    
     
         
     

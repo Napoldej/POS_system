@@ -1,0 +1,54 @@
+{% extends 'pos_system/base.html'%}
+{% load static %}
+{% block header%} Edit Product {% endblock%}
+{% block content %}
+<form action="{% url 'pos-system:edit_product' product.id %}" method="post" class="form-container">
+    {% csrf_token %}
+    
+    <div class="form-group">
+        <label for="{{ form.product_name.id_for_label }}" class="form-label">
+            {{ form.product_name.label }}
+        </label>
+        <div class="form-input">
+            {{ form.product_name }}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="{{ form.categories.id_for_label }}" class="form-label">
+            Category
+        </label>
+        <div class="form-input">
+            {{ form.categories }}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+        </label>
+        <div class="form-input">
+            {{ form.description }}
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="{{ form.price.id_for_label }}" class="form-label">
+            {{ form.price.label }}
+        </label>
+        <div class="form-input">
+            {{ form.price}}
+        </div>
+    </div>
+    <div class="form-stock-status">
+        <label for="stock_status">{{ form.stock_status.label }}</label>
+        {{ form.stock_status }}
+    </div>
+    
+
+
+    <div class="form-buttons">
+        <button type="submit" class="btn-submit">Save</button>
+    </div>
+</form>
+
+
+{% endblock %}

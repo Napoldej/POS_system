@@ -1,0 +1,41 @@
+{% extends 'pos_system/base.html'%}
+{% block header %} Add Product {% endblock %}
+{% load static%}
+{% block content %}
+<div class="form-container">
+    <h2>Add New Product</h2>
+    <form action="{% url 'pos-system:add_product' %}" method="post" class="form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="product_name">{{ form.product_name.label }}</label>
+            {{ form.product_name }}
+        </div>
+
+        <div class="form-group">
+            <label for="category">{{ form.categories.label }}</label>
+            {{ form.categories }}
+        </div>
+
+        <div class="form-group">
+            <label for="description">{{ form.description.label }}</label>
+            {{ form.description }}
+        </div>
+
+        <div class="form-group">
+            <label for="price">{{ form.price.label }}</label>
+            {{ form.price }}
+        </div>
+
+        <div class="form-stock-status">
+            <label for="stock_status">stock status available</label>
+            {{ form.stock_status }}
+        </div>
+
+        <!-- Save button -->
+        <div class="form-buttons">
+            <button type="submit" class="btn-submit">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

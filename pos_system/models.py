@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.utils import timezone
 
 # Create your models here.
 
@@ -38,22 +39,28 @@ class Employees(AbstractUser):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     
+class Queue(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELED', 'Canceled')
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(default=timezone.now)
+
     
-class Customer(models.Model):
-    customer_name  = models.CharField(max_length= 100, choices= PRODUCT_CATEGORY,null = True , blank = True)
-    
-    def __str__(self):
-        return f"Customer : {self.customer_name}"
         
+    
     
 class Order(models.Model):
     employee = models.ForeignKey(Employees, on_delete= models.CASCADE)
-    customer = models.ForeignKey(Customer, on_delete= models.CASCADE)
+    queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
     total_amount = models.DecimalField(max_digits= 6, decimal_places= 2, default= 0.00)
     timestamp = models.DateTimeField("Order At", auto_now_add= True)
     
     def __str__(self):
-        return (f"Order : {self.id},Employee : {self.employee}, Customer : {self.customer}," 
+        return (f"Order : {self.id},Employee : {self.employee}, Queue : {self.queue}," 
                 f"total_amount : {self.total_amount}", 
                 f"timestamp: {self.timestamp}")
     
@@ -96,19 +103,29 @@ class OrderItems(models.Model):
     
 class PaymentMethod(models.Model):
     method_name = models.CharField(max_length= 100, choices= PAYMENT_METHOD ,null = False, blank = False)
-    
+
+
 class Payment(models.Model):
     order = models.ForeignKey(Order, on_delete= models.CASCADE, related_name='payments')
-    customer = models.ForeignKey(Customer, on_delete= models.CASCADE, related_name='payments')
+    queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
     method = models.ForeignKey(PaymentMethod, on_delete= models.CASCADE, related_name='payments')
-    amount = models.DecimalField(max_digits= 6, decimal_places= 2, default= 0.00)
+    grand_total = models.FloatField(default=0)
+    tax_amount = models.FloatField(default=0)
+    tax = models.FloatField(default=0)
+    tendered_amount = models.FloatField(default=0)
+    amount_change = models.FloatField(default=0)
+    date_added = models.DateTimeField(default=timezone.now) 
+    date_updated = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"Order: {self.order.id}, Customer: {self.customer.customer_name}, Method: {self.method.method_name}, Amount: {self.amount}"
+        return f"Order: {self.order.id},  ,Method: {self.method.method_name}, Amount: {self.amount}"
+    
+    
+
     
 class Receipt(models.Model):
     order = models.ForeignKey(Order, on_delete= models.CASCADE)
-    customer = models.ForeignKey(Customer, on_delete= models.CASCADE)
+    queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
     
     @property
     def order_detail(self):
@@ -118,5 +135,8 @@ class Receipt(models.Model):
         return ", ".join(detail_list)
     
     def __str__(self):
-        return f"Receipt: Order ID {self.order.id}, Customer: {self.customer.customer_name}, Order Details: {self.order_detail}"
+        return f"Receipt: Order ID {self.order.id}, Queue: {self.queue}, Order Details: {self.order_detail}"
+    
+
+    
     

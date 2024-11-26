@@ -1,0 +1,47 @@
+{% extends 'pos_system/base.html' %}
+{% block header %} Product {% endblock %}
+{% load static %}
+{% block content %}
+
+<table class="category-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Category</th>
+            <th>Product</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Stock Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for product in product_list %} 
+        <tr>
+            <td>{{ product.id }}</td>
+            <td>{{product.categories}}</td>
+            <td> {{product.product_name}}</td>
+            <td>{{ product.description }}</td>
+            <td>{{ product.price }}</td>
+            <td>
+                {% if product.stock_status %}
+                    ✓
+                {% else %}
+                    ✗
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'pos-system:edit_product' product.id %}" class="btn-action">Edit</a>
+                <a href="{% url 'pos-system:delete_product' product.id %}" class="btn-action btn-delete">Delete</a> 
+            </td> 
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Container for the Add Category button -->
+<div class="add-category-container">
+    <a href="{% url 'pos-system:add_product' %}" class="btn-add-category">Add Product</a>
+</div>
+
+{% endblock %}
