@@ -139,15 +139,22 @@ def add_inventory(request):
     if request.method == 'POST':
         form = InventoryForm(request.POST)
         if form.is_valid():
-            form.save()
+            product_id = request.POST.get('product_name')
+            product = Product.objects.get(id=product_id)
+            inventory = form.save(commit=False)
+            inventory.product = product
+            inventory.save()
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm()
-    return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': Product.objects.all()})
+
+    products = Product.objects.all()
+    return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': products})
+
 
 @login_required
 def edit_inventory(request, inventory_id):
-    inventory =  get_object_or_404(Inventory, id = inventory_id)
+    inventory =  get_object_or_404(Inventory, id=inventory_id)
     if request.method == 'POST':
         form = InventoryForm(request.POST, instance=inventory)
         if form.is_valid():

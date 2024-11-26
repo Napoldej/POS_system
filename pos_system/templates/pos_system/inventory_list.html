@@ -20,8 +20,8 @@
             <td>{{ inventory.cost }}</td>
             <td>{{ inventory.last_restocked }}</td>
             <td>
-                <a href="{% url 'pos-system:edit_product' inventory.product.id %}" class="btn-action">Edit</a>
-                <a href="{% url 'pos-system:delete_product' inventory.product.id %}" class="btn-action btn-delete">Delete</a> 
+                <a href="{% url 'pos-system:edit_inventory' inventory.product.id %}" class="btn-action">Edit</a>
+                <a href="{% url 'pos-system:delete_inventory' inventory.product.id %}" class="btn-action btn-delete">Delete</a> 
             </td>
         </tr>
         {% endfor %}

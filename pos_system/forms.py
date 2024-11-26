@@ -31,6 +31,9 @@ class CustomUserCreationForm(UserCreationForm):
         return user
     
 class InventoryForm(forms.ModelForm):
+
     class Meta:
         model = Inventory
         fields = "__all__"
+        exclude = ['product']
+        
