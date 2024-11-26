@@ -7,6 +7,7 @@ from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationF
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+from django.db.models import F, Sum
 
 
 
@@ -16,11 +17,31 @@ def home(request):
     number_category = len(Categories.objects.all())
     number_product = len(Product.objects.all())
     number_order = len(Payment.objects.all())
-    context=  {
+    
+    product_performance_data = OrderItems.objects.values('product') \
+        .annotate(
+            total_sales=Sum(F('quantity') * F('price_per_unit')),
+            total_quantity_sold=Sum('quantity')
+        ) \
+        .order_by('-total_quantity_sold')
+    top_performing_products = []
+    for entry in product_performance_data:
+        product = Product.objects.get(id=entry['product_id'])
+        top_performing_products.append({
+            'product_name': product.product_name,
+            'total_sales': entry['total_sales'],
+            'total_quantity_sold': entry['total_quantity_sold'],
+        })
+
+    # Returning the context for rendering
+    context = {
         'number_category': number_category,
-        'number_product' : number_product,
-        'number_order' : number_order,
+        'number_product': number_product,
+        'number_order': number_order,
+        'top_performing_products': top_performing_products
     }
+
+    return render(request, 'pos_system/home.html', context)
     return  render(request,'pos_system/home.html', context= context)
 
 
@@ -48,7 +69,6 @@ def signup(request):
         # create a user form and display it the signup page
         form = CustomUserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
-
 
 
 class CategoryList(generic.ListView):

@@ -6,10 +6,13 @@
 
 {% block content %}
 
+<!-- Existing Cards for Categories, Products, and Orders -->
 <div class="row my-5">
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
-            <a href = {% url 'pos-system:category-list'%}><h5 class="card-title">Categories</h5></a>
+            <a href="{% url 'pos-system:category-list' %}">
+                <h5 class="card-title">Categories</h5>
+            </a>
             <p class="card-text">{{ number_category }}</p>
             <small class="text-muted">Overall Count of Categories</small>
         </div>
@@ -36,4 +39,21 @@
         </div>
     </div>
 </div>
+
+<!-- Product Performance Section -->
+<div class="my-5">
+    <h3>Top Performing Products</h3>
+    <div class="row">
+        {% for product in top_performing_products %}
+        <div class="col-md-4">
+            <div class="card bg-light shadow-sm p-3">
+                <h5 class="card-title">{{ product.product_name }}</h5>
+                <p class="card-text">Total Sales: ${{ product.total_sales }}</p>
+                <p class="card-text">Quantity Sold: {{ product.total_quantity_sold }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}
