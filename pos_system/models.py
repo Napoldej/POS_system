@@ -20,25 +20,27 @@ PRODUCT_CATEGORY = [
     ("BREAKFAST_ITEMS", "breakfast items"),
 ]
     
-    
+STATUS_CHOICES = [
+    ('PENDING', 'Pending'),
+    ('PROCESSING', 'Processing'),
+    ('COMPLETED', 'Completed'),
+    ('CANCELED', 'Canceled'),
+]    
     
 class Queue(models.Model):
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('PROCESSING', 'Processing'),
-        ('COMPLETED', 'Completed'),
-        ('CANCELED', 'Canceled')
-    ]
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(default=timezone.now)
-
-        
+  
     
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete= models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
     total_amount = models.DecimalField(max_digits= 6, decimal_places= 2, default= 0.00)
     timestamp = models.DateTimeField("Order At", auto_now_add= True)
+    
+    @classmethod
+    def get_orders_by_date_range(cls, start_date, end_date):
+        return cls.objects.filter(timestamp__range=[start_date, end_date])
     
     def __str__(self):
         return f"Order : {self.id}"
@@ -56,6 +58,11 @@ class Product(models.Model):
     price = models.DecimalField(max_digits= 6, decimal_places= 2, default= 0.00)
     categories = models.ForeignKey(Categories, on_delete= models.CASCADE)
     stock_status = models.BooleanField(default= False)
+    quantity_sold = models.PositiveIntegerField(default=0)
+    sales_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def never_sold(cls):
+        return cls.objects.filter(quantity_sold=0)
     
     def __str__(self):
         return f"Product: {self.product_name}"
@@ -76,6 +83,10 @@ class OrderItems(models.Model):
     quantity = models.PositiveIntegerField(default=0)
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
+    def save(self, *args, **kwargs):
+        self.price_per_unit = self.product.price  # Ensure the price is up-to-date
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Order: {self.order.id}, Product: {self.product.product_name}, Quantity: {self.quantity}, Price per unit: {self.price_per_unit}"
     
@@ -95,7 +106,12 @@ class Payment(models.Model):
     amount_change = models.FloatField(default=0)
     date_added = models.DateTimeField(default=timezone.now) 
     date_updated = models.DateTimeField(auto_now=True)
-    
+
+    def calculate_total(self):
+        total = sum(item.price_per_unit * item.quantity for item in self.order.items.all())
+        self.grand_total = total + self.tax_amount
+        self.save()
+
     def __str__(self):
         return f"Order: {self.order.id},  ,Method: {self.method.method_name}, Amount: {self.amount}"
     
