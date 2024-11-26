@@ -1,17 +1,35 @@
-<table border = 1>
+{% extends 'pos_system/base.html' %}
+{% block header %} Categories {% endblock %}
+{% load static %}
+{% block content %}
+
+<table class="category-table">
     <thead>
         <tr>
+            <th>ID</th>
             <th>Category</th>
-            <th>description</th>
+            <th>Description</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
-    {% for category in category_list%} 
+        {% for category in category_list %} 
         <tr>
-            <td>{{category.category_name}}</td>
-            <td>{{category.description}}</td>
-            <td><a href = {% url 'pos-system:edit_category' category.id %}>edit</a></td>
-        <tr>
-    {% endfor %}
-    <tbody>
+            <td>{{ category.id }}</td>
+            <td>{{ category.category_name }}</td>
+            <td>{{ category.description }}</td>
+            <td>
+                <a href="{% url 'pos-system:edit_category' category.id %}" class="btn-action">Edit</a>
+                <a href="{% url 'pos-system:delete_category' category.id %}" class="btn-action btn-delete">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<!-- Container for the Add Category button -->
+<div class="add-category-container">
+    <a href="{% url 'pos-system:add_category' %}" class="btn-add-category">Add Category</a>
+</div>
+
+{% endblock %}

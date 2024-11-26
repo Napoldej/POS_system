@@ -24,7 +24,6 @@ class CategoryList(generic.ListView):
         return Categories.objects.all()
     
 
-
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
@@ -44,7 +43,13 @@ def edit_category(request,category_id):
             return redirect('pos-system:category-list')
     else:
         form = CategoryForm(instance=category)
-    return render(request, 'pos_system/edit_category.html', {'form': form})
+    return render(request, 'pos_system/edit_category.html', {'form': form, 'category': category})
+
+
+def delete_category(request, category_id):
+    category = get_object_or_404(Categories, id=category_id)
+    category.delete()
+    return redirect('pos-system:category-list')
 
 
     

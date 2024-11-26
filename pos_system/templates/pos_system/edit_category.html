@@ -1,8 +1,32 @@
-<form action="{% url 'pos-system:edit_category' category_id%}" method="post">
+{% extends 'pos_system/base.html'%}
+{% load static %}
+{% block header%} Edit Category {% endblock%}
+{% block content %}
+<form action="{% url 'pos-system:edit_category' category.id %}" method="post" class="form-container">
     {% csrf_token %}
-    {{form.category_name.label_tag}}
-    {{form.category_name}}<br>
-    {{form.description.label_tag}} <br>
-    {{form.description}} <br>
-    <button type = "submit">Save</button>
+    
+    <div class="form-group">
+        <label for="{{ form.category_name.id_for_label }}" class="form-label">
+            {{ form.category_name.label }}
+        </label>
+        <div class="form-input">
+            {{ form.category_name }}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+        </label>
+        <div class="form-input">
+            {{ form.description }}
+        </div>
+    </div>
+
+    <div class="form-footer">
+        <button type="submit" class="submit-btn">Save</button>
+    </div>
 </form>
+
+
+{% endblock %}

@@ -1,8 +1,22 @@
-<form action="{% url 'pos-system:add_category' %}" method="post">
-    {% csrf_token %}
-    {{form.category_name.label_tag}}
-    {{form.category_name}}<br>
-    {{form.description.label_tag}} <br>
-    {{form.description}} <br>
-    <button type = "submit">Save</button>
-</form>
+{% extends 'pos_system/base.html' %}
+{% load static %}
+{% block header %} Add Category {% endblock %}
+{% block content %}
+<div class="form-container">
+    <h2>Add New Category</h2>
+    <form action="{% url 'pos-system:add_category' %}" method="post" class="form">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="category_name">{{ form.category_name.label }}</label>
+            {{ form.category_name }}
+        </div>
+        
+        <div class="form-group">
+            <label for="description">{{ form.description.label }}</label>
+            {{ form.description }}
+        </div>
+        
+        <button type="submit" class="btn-submit">Save</button>
+    </form>
+</div>
+{% endblock %}

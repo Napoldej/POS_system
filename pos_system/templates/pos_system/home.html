@@ -1,29 +1,38 @@
+{% extends 'pos_system/base.html' %}
 
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="">
-    </head>
-    <body>
-        Category:
-        {{number_category}} <br>
-        Products:
-        {{number_product}} <br>
-        Transaction:
-        {{number_order}} <br>
-        Today sales:
-        0
+{% block title %}Home Page{% endblock %}
 
-        <script src="" async defer></script>
-    </body>
-</html>
+{% block header %}Home Page{% endblock %}
 
-
-
-
-
+{% block content %}
+<div class="row my-5">
+    <div class="col-md-3">
+        <div class="card bg-light shadow-sm p-3">
+            <a href = {% url 'pos-system:category-list'%}><h5 class="card-title">Categories</h5></a>
+            <p class="card-text">{{ number_category }}</p>
+            <small class="text-muted">Overall Count of Categories</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light shadow-sm p-3">
+            <h5 class="card-title">Products</h5>
+            <p class="card-text">{{ number_product }}</p>
+            <small class="text-muted">Overall Count of Products</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light shadow-sm p-3">
+            <h5 class="card-title">Transactions</h5>
+            <p class="card-text">{{ number_order }}</p>
+            <small class="text-muted">Today's Transactions</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light shadow-sm p-3">
+            <h5 class="card-title">Today's Sales</h5>
+            <p class="card-text">0</p>
+            <small class="text-muted">Total Sales Today</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

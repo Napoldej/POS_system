@@ -1,0 +1,286 @@
+/* Sidebar */
+#sidebar-wrapper {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    background-color: #343a40;
+}
+
+.sidebar-heading {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.list-group-item {
+    border: none;
+}
+
+.list-group-item:hover {
+    background-color: #495057;
+    color: #ffffff;
+}
+
+/* Page Content */
+#page-content-wrapper {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+}
+
+.navbar {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+    border: none;
+    border-radius: 8px;
+}
+
+.card-title {
+    color: #007bff;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 18px;
+    text-align: left;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Form container styling */
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Styling for form groups (label and input fields) */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.form-input input,
+.form-input textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
+}
+
+.form-input input:focus,
+.form-input textarea:focus {
+    border-color: #4A90E2;
+    outline: none;
+    background-color: #fff;
+}
+
+/* Styling for the submit button */
+.submit-btn {
+    padding: 12px 30px;
+    font-size: 18px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.submit-btn:focus {
+    outline: none;
+    border: 2px solid #0056b3;
+}
+
+/* Styling for the footer (button container) */
+.form-footer {
+    text-align: right;
+}
+
+
+/* General styling for the table */
+.category-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.category-table th,
+.category-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.category-table th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+.category-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Styling for action buttons */
+.btn-action {
+    padding: 8px 15px;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-action:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+/* Delete button style */
+.btn-delete {
+    background-color: #FF6347;
+}
+
+.btn-delete:hover {
+    background-color: #e53e2f;
+}
+
+/* Container for Add Category button */
+.add-category-container {
+    display: flex;
+    justify-content: flex-end; /* Align the button to the right */
+    margin-top: 20px;
+}
+
+/* Add Category button styling */
+.btn-add-category {
+    padding: 12px 25px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-add-category:hover {
+    background-color: #218838;
+    transform: scale(1.05);
+}
+
+/* Styling for form container */
+.form-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f4f4f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form title */
+.form-container h2 {
+    text-align: center;
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Form styling */
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Form input field styling */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Label for input fields */
+.form-group label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* Input fields styling */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Focus effect on inputs */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Submit button styling */
+.btn-submit {
+    padding: 12px 20px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover effect for the submit button */
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+
