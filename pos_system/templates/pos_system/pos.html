@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Point of Sale</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Products to Order</h1>
+
+    <!-- Add Product Form -->
+    <form method="post">
+        {% csrf_token %}
+        <label for="product_id">Select Product:</label>
+        <select name="product_id" id="product_id" required>
+            <option value="" disabled selected>Please Select Product here</option>
+            {% for product in products %}
+                <option value="{{ product.id }}">{{ product.product_name }} - ${{ product.price }}</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <label for="quantity">Quantity:</label>
+        <input type="number" name="quantity" id="quantity" min="1" value="1" required>
+        <br>
+
+        <button type="submit">+ Add Item</button>
+    </form>
+
+    <!-- Display Order Items -->
+    <h2>Order Items</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>QTY</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            
+            {% for item in order_item %}
+            <tr>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.product.product_name }}</td>
+                <td>${{ item.product.price_per_unit }}</td>
+                <td>${{ item.total_price }}</td>
+                {% comment %} <td>
+                    <form method="post" action="{% url 'remove_order_item' item.id %}">
+                        {% csrf_token %}
+                        <button type="submit">X</button>
+                    </form>
+                </td> {% endcomment %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5">No items added to the order.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Order Summary -->
+    <h2>Order Summary</h2>
+    <p><strong>Sub Total:</strong> ${{ order.total_amount }}</p>
+    <p><strong>Tax Inclusive (%):</strong> 10%</p>
+    <p><strong>Tax Amount:</strong> ${{ tax_amount }}</p>
+    <p><strong>Grand Total:</strong> ${{ grand_total }}</p>
+    {% comment %} <a href="{% url 'checkout' order.id %}">Checkout</a> {% endcomment %}
+</body>
+</html>

@@ -9,6 +9,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 
 
+
+
 @login_required
 def home(request):
     number_category = len(Categories.objects.all())
@@ -123,8 +125,63 @@ def delete_product(request, product_id):
 
 
 
+@login_required
+def add_product_to_order(request):
+    """
+    This view creates an order if none exists for the user and adds products to the order.
+    Upon completion, it redirects to the Payment object for processing payment details.
+    """
+    user = request.user
+    # Check if the user already has a pending order
+    queue = Queue.objects.create(status='PENDING')
+    order = Order.objects.create(user=user, queue=queue)
+    products = Product.objects.all()
+    order_item = OrderItems.objects.all()
+    tax_rate = 0.1  # Example: 10% tax
+    tax_amount = order.total_amount * tax_rate
+    grand_total = order.total_amount + tax_amount
+
+    if request.method == "POST":
+        product_id = request.POST.get("product_id")
+        quantity = int(request.POST.get("quantity"))
+        product = Product.objects.get(id=product_id)
+        price_per_unit = product.price
+        if quantity > 0:
+            # Check if the product already exists in the order
+            order_item, created = OrderItems.objects.get_or_create(
+                order=order,
+                product=product,
+                defaults={'quantity': quantity, 'price_per_unit': price_per_unit}
+            )
+            if not created:
+                # Update the quantity if the product already exists in the order
+                order_item.quantity += quantity
+                order_item.save()
+
+        # Update the total amount of the order
+        order.total_amount = sum(
+            item.quantity * item.price_per_unit for item in OrderItems.objects.all()
+        )
+        order.save()
+    
+    return render(request, 'pos_system/pos.html', {
+        'order': order,
+        'products': products,
+        'order_item': order_item,
+        'tax_amount': tax_amount,
+        'grand_total': grand_total,
+    })
+        
 
     
-    
         
-    
+
+
+# @login_required
+# def payment_detail(request, payment_id):
+#     """
+#     Displays the payment details for a specific Payment object.
+#     """
+#     payment = get_object_or_404(Payment, id=payment_id)
+
+#     return render(request, 'pos_system/payment_detail.html', {'payment': payment})

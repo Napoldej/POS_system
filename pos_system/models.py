@@ -41,9 +41,7 @@ class Order(models.Model):
     timestamp = models.DateTimeField("Order At", auto_now_add= True)
     
     def __str__(self):
-        return (f"Order : {self.id},Employee : {self.user}, Queue : {self.queue}," 
-                f"total_amount : {self.total_amount}", 
-                f"timestamp: {self.timestamp}")
+        return f"Order : {self.id}"
     
 class Categories(models.Model):
     category_name = models.CharField(max_length= 100, null = False, blank = False)
@@ -60,7 +58,7 @@ class Product(models.Model):
     stock_status = models.BooleanField(default= False)
     
     def __str__(self):
-        return f"Product: {self.product_name}, Price : {self.price}, Status : {self.stock_status}"
+        return f"Product: {self.product_name}"
 
 class Inventory(models.Model):
     product = models.ForeignKey(Product, on_delete= models.CASCADE)
