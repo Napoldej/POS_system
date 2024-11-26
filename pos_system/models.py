@@ -26,18 +26,19 @@ class Employees(AbstractUser):
     hired_data = models.DateField("Hired date",auto_now_add=True)
     groups = models.ManyToManyField(
         Group,
-        related_name="employees_groups",  # Avoid conflict with default user_set
+        related_name="employees_groups",  
         blank=True
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name="employees_permissions",  # Avoid conflict with default user_set
+        related_name="employees_permissions",  
         blank=True
     )
     
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
     
 class Queue(models.Model):
     STATUS_CHOICES = [
@@ -122,21 +123,3 @@ class Payment(models.Model):
     
     
 
-    
-class Receipt(models.Model):
-    order = models.ForeignKey(Order, on_delete= models.CASCADE)
-    queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
-    
-    @property
-    def order_detail(self):
-        # Retrieve all related order items
-        items = OrderItems.objects.filter(order=self)
-        detail_list = [f"{item.quantity} {item.product.product_name}" for item in items]
-        return ", ".join(detail_list)
-    
-    def __str__(self):
-        return f"Receipt: Order ID {self.order.id}, Queue: {self.queue}, Order Details: {self.order_detail}"
-    
-
-    
-    
