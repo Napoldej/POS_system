@@ -1,0 +1,39 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="{% static 'pos_system/style.css' %}"> <!-- Link to your external stylesheet -->
+</head>
+<h2 class="register-title">Register</h2>
+<form method="POST" class="register-form">
+    {% csrf_token %}
+    <div class="form-section">
+        <div class="input-group">
+            <label for="id_username" class="form-label">{{ form.username.label }}</label>
+            {{ form.username }}
+            <div class="error-message">{{ form.username.errors }}</div>
+        </div>
+        <div class="input-group">
+            <label for="id_password1" class="form-label">{{ form.password1.label }}</label>
+            {{ form.password1 }}
+            <div class="error-message">{{ form.password1.errors }}</div>
+        </div>
+        <div class="input-group">
+            <label for="id_password2" class="form-label">{{ form.password2.label }}</label>
+            {{ form.password2 }}
+            <div class="error-message">{{ form.password2.errors }}</div>
+        </div>
+        <div class="submit-button-container">
+            <button type="submit" class="btn-submit">Register</button>
+        </div>
+    </div>
+</form>
+<a href = {% url 'login' %}>Back to login page</a>
+
+<div class="help-field">
+    {% for help in form %}
+        <p class="help-text">{{ help.help_text }}</p>
+    {% endfor %}
+</div>
