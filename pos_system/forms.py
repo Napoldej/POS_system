@@ -1,5 +1,5 @@
 from django import forms
-from .models import Categories, Product, OrderItems
+from .models import Categories, Product, Inventory
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -29,3 +29,11 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+    
+class InventoryForm(forms.ModelForm):
+
+    class Meta:
+        model = Inventory
+        fields = "__all__"
+        exclude = ['product']
+        

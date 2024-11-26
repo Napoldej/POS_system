@@ -1,0 +1,33 @@
+{% extends 'pos_system/base.html' %}
+{% block header %} Inventory {% endblock %}
+{% load static %}
+{% block content %}
+<table class="inventory-table">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Cost</th>
+            <th>Last Restocked</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inventory in inventory_list %}
+        <tr>
+            <td>{{ inventory.product.product_name }}</td>
+            <td>{{ inventory.quantity }}</td>
+            <td>{{ inventory.cost }}</td>
+            <td>{{ inventory.last_restocked }}</td>
+            <td>
+                <a href="{% url 'pos-system:edit_inventory' inventory.product.id %}" class="btn-action">Edit</a>
+                <a href="{% url 'pos-system:delete_inventory' inventory.product.id %}" class="btn-action btn-delete">Delete</a> 
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="add-inventory-container">
+    <a href="{% url 'pos-system:add_inventory' %}" class="btn-add-inventory">Add Stock</a>
+</div>
+{% endblock %}

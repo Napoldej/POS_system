@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
-from .forms import CategoryForm, ProductForm, CustomUserCreationForm
+from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -23,6 +23,11 @@ def home(request):
     }
     return  render(request,'pos_system/home.html', context= context)
 
+
+@login_required
+def logout(request):
+    logout(request)
+    return redirect('pos-system:login')
 
 def signup(request):
     """Register a new user."""
@@ -173,7 +178,7 @@ def add_product_to_order(request):
     })
         
 
-    
+
         
 
 
@@ -185,3 +190,48 @@ def add_product_to_order(request):
 #     payment = get_object_or_404(Payment, id=payment_id)
 
 #     return render(request, 'pos_system/payment_detail.html', {'payment': payment})
+    
+    
+class InventoryList(generic.ListView):
+    template_name = 'pos_system/inventory_list.html'
+    context_object_name = 'inventory_list'
+    
+    def get_queryset(self):
+        return Inventory.objects.all()
+
+@login_required
+def add_inventory(request):
+    if request.method == 'POST':
+        form = InventoryForm(request.POST)
+        if form.is_valid():
+            product_id = request.POST.get('product_name')
+            product = Product.objects.get(id=product_id)
+            inventory = form.save(commit=False)
+            inventory.product = product
+            inventory.save()
+            return redirect('pos-system:inventory-list')
+    else:
+        form = InventoryForm()
+
+    products = Product.objects.all()
+    return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': products})
+
+
+@login_required
+def edit_inventory(request, inventory_id):
+    inventory =  get_object_or_404(Inventory, id=inventory_id)
+    if request.method == 'POST':
+        form = InventoryForm(request.POST, instance=inventory)
+        if form.is_valid():
+            form.save()
+            return redirect('pos-system:inventory-list')
+    else:
+        form = InventoryForm(instance=inventory)
+    return render(request, 'pos_system/edit_inventory.html', {'form': form, 'inventory': inventory})
+
+@login_required
+def delete_inventory(request, inventory_id):
+    inventory = get_object_or_404(Inventory, id=inventory_id)
+    inventory.delete()
+    return redirect('pos-system:inventory-list')
+    
