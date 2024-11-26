@@ -1,0 +1,61 @@
+{% extends 'pos_system/base.html' %}
+{% block header %} Sales Insights {% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Sales Insights</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Average Order Value</h3>
+            <p>${{ avg_order_value|floatformat:2 }}</p>
+        </div>
+        <div class="col-md-6">
+            <h3>Top Products</h3>
+            <ul>
+                {% for product in top_products %}
+                <li>{{ product.product_name }}: ${{ product.total_sales|floatformat:2 }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Sales by Category</h3>
+            <table>
+                {% for category in category_sales %}
+                <tr>
+                    <td>{{ category.category_name }}</td>
+                    <td>${{ category.total_revenue|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h3>Recent Orders</h3>
+            <table>
+                {% for order in recent_orders %}
+                <tr>
+                    <td>{{ order.user.username }}</td>
+                    <td>${{ order.total_amount|floatformat:2 }}</td>
+                    <td>{{ order.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Products Never Sold</h3>
+            <ul>
+                {% for product in never_sold_products %}
+                <li>{{ product.product_name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,85 +1,178 @@
+{% extends 'pos_system/base.html' %}
+{% block header %} Point of Sale {% endblock %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Point of Sale</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-<body>
-    <h1>Add Products to Order</h1>
 
-    <!-- Add Product Form -->
-    <form method="post">
-        {% csrf_token %}
-        <label for="product_id">Select Product:</label>
-        <select name="product_id" id="product_id" required>
-            <option value="" disabled selected>Please Select Product here</option>
-            {% for product in products %}
-                <option value="{{ product.id }}">{{ product.product_name }} - ${{ product.price }}</option>
-            {% endfor %}
-        </select>
-        <br>
-
-        <label for="quantity">Quantity:</label>
-        <input type="number" name="quantity" id="quantity" min="1" value="1" required>
-        <br>
-
-        <button type="submit">+ Add Item</button>
-    </form>
-
-    <!-- Display Order Items -->
-    <h2>Order Items</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>QTY</th>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+{% block content %}
+<div class="container mx-auto p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Product Selection Column -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Add Products to Order</h2>
             
-            {% for item in order_item %}
-            <tr>
-                <td>{{ item.quantity }}</td>
-                <td>{{ item.product.product_name }}</td>
-                <td>${{ item.product.price_per_unit }}</td>
-                <td>${{ item.total_price }}</td>
-                {% comment %} <td>
-                    <form method="post" action="{% url 'remove_order_item' item.id %}">
-                        {% csrf_token %}
-                        <button type="submit">X</button>
-                    </form>
-                </td> {% endcomment %}
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5">No items added to the order.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <!-- Product Selection Form -->
+            <form id="add-product-form" method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="product_id" class="block mb-2 font-semibold">Select Product</label>
+                    <select 
+                        name="product_id" 
+                        id="product_id" 
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    >
+                        <option value="" disabled selected>Choose a Product</option>
+                        {% for product in products %}
+                            <option 
+                                value="{{ product.id }}" 
+                                data-price="{{ product.price_per_unit }}"
+                                data-stock="{{ product.current_stock }}"
+                            >
+                                {{ product.product_name }} - ${{ product.price_per_unit }} 
+                                (Stock: {{ product.current_stock }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-    <!-- Order Summary -->
-    <h2>Order Summary</h2>
-    <p><strong>Sub Total:</strong> ${{ order.total_amount }}</p>
-    <p><strong>Tax Inclusive (%):</strong> 10%</p>
-    <p><strong>Tax Amount:</strong> ${{ tax_amount }}</p>
-    <p><strong>Grand Total:</strong> ${{ grand_total }}</p>
-    {% comment %} <a href="{% url 'checkout' order.id %}">Checkout</a> {% endcomment %}
-</body>
-</html>
+                <div class="form-group">
+                    <label for="quantity" class="block mb-2 font-semibold">Quantity</label>
+                    <input 
+                        type="number" 
+                        name="quantity" 
+                        id="quantity" 
+                        min="1" 
+                        value="1" 
+                        class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    >
+                    <small id="stock-warning" class="text-red-500 hidden">Insufficient stock!</small>
+                </div>
+
+                <button 
+                    type="submit" 
+                    class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300"
+                >
+                    Add to Order
+                </button>
+            </form>
+        </div>
+
+        <!-- Order Summary Column -->
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Current Order</h2>
+            
+            <!-- Order Items Table -->
+            <div class="overflow-x-auto">
+                <table class="w-full mb-4">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="py-2 px-4 text-left">QTY</th>
+                            <th class="py-2 px-4 text-left">Product</th>
+                            <th class="py-2 px-4 text-right">Price</th>
+                            <th class="py-2 px-4 text-right">Total</th>
+                            <th class="py-2 px-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_item %}
+                            <tr class="border-b">
+                                <td class="py-2 px-4">{{ item.quantity }}</td>
+                                <td class="py-2 px-4">{{ item.product.product_name }}</td>
+                                <td class="py-2 px-4 text-right">${{ item.product.price_per_unit }}</td>
+                                <td class="py-2 px-4 text-right">${{ item.total_price }}</td>
+                                <td class="py-2 px-4 text-center">
+                                    <button 
+                                        class="text-red-500 hover:text-red-700 remove-item" 
+                                        data-item-id="{{ item.id }}"
+                                    >
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-gray-500">
+                                    No items in the order
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="bg-gray-50 p-4 rounded-md">
+                <h3 class="text-xl font-semibold mb-3">Order Summary</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Sub Total:</span>
+                        <span class="font-bold">${{ order.total_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Tax (10%):</span>
+                        <span class="font-bold">${{ tax_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold border-t pt-2">
+                        <span>Grand Total:</span>
+                        <span>${{ grand_total|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Checkout Button -->
+                <button 
+                    id="checkout-btn"
+                    class="w-full mt-4 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300"
+                >
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Optional: JavaScript for Enhanced Functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productSelect = document.getElementById('product_id');
+    const quantityInput = document.getElementById('quantity');
+    const stockWarning = document.getElementById('stock-warning');
+
+    // Dynamic stock validation
+    productSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const maxStock = parseInt(selectedOption.dataset.stock);
+        
+        quantityInput.max = maxStock;
+        quantityInput.setAttribute('max', maxStock);
+    });
+
+    quantityInput.addEventListener('input', function() {
+        const selectedOption = productSelect.options[productSelect.selectedIndex];
+        const maxStock = parseInt(selectedOption.dataset.stock);
+        
+        if (parseInt(this.value) > maxStock) {
+            stockWarning.classList.remove('hidden');
+            this.value = maxStock;
+        } else {
+            stockWarning.classList.add('hidden');
+        }
+    });
+
+    // Remove item functionality (stub - implement with AJAX)
+    const removeButtons = document.querySelectorAll('.remove-item');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            // Implement remove item logic here
+            console.log('Remove item:', itemId);
+        });
+    });
+
+    // Checkout button (stub)
+    document.getElementById('checkout-btn').addEventListener('click', function() {
+        // Implement checkout logic here
+        console.log('Proceed to checkout');
+    });
+});
+</script>
+{% endblock %}

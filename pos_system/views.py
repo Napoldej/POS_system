@@ -7,8 +7,9 @@ from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationF
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Sum
-
+from django.db.models import F, Sum, Avg
+from django.db.models.functions import TruncMonth
+from decimal import Decimal
 
 
 
@@ -42,8 +43,6 @@ def home(request):
     }
 
     return render(request, 'pos_system/home.html', context)
-    return  render(request,'pos_system/home.html', context= context)
-
 
 @login_required
 def logout(request):
@@ -158,11 +157,16 @@ def add_product_to_order(request):
     """
     user = request.user
     # Check if the user already has a pending order
-    queue = Queue.objects.create(status='PENDING')
-    order = Order.objects.create(user=user, queue=queue)
+    existing_order = Order.objects.filter(user=user, queue__status='PENDING').first()
+    if existing_order:
+        order = existing_order
+    else:
+        queue = Queue.objects.create(status='PENDING')
+        order = Order.objects.create(user=user, queue=queue)
+
     products = Product.objects.all()
     order_item = OrderItems.objects.all()
-    tax_rate = 0.1  # Example: 10% tax
+    tax_rate = Decimal('0.7') # Example: 10% tax
     tax_amount = order.total_amount * tax_rate
     grand_total = order.total_amount + tax_amount
 
@@ -185,7 +189,7 @@ def add_product_to_order(request):
 
         # Update the total amount of the order
         order.total_amount = sum(
-            item.quantity * item.price_per_unit for item in OrderItems.objects.all()
+            item.quantity * item.price_per_unit for item in order.orderitems.all()
         )
         order.save()
     
@@ -225,10 +229,14 @@ def add_inventory(request):
         form = InventoryForm(request.POST)
         if form.is_valid():
             product_id = request.POST.get('product_name')
-            product = Product.objects.get(id=product_id)
+            try:
+                product = Product.objects.get(id=product_id)
+            except Product.DoesNotExist:
+                form.add_error('product_name', 'Selected product does not exist.')
+                return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': Product.objects.all()})
             inventory = form.save(commit=False)
             inventory.product = product
-            inventory.save()
+            inventory.save()     
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm()
@@ -255,3 +263,96 @@ def delete_inventory(request, inventory_id):
     inventory.delete()
     return redirect('pos-system:inventory-list')
     
+@login_required
+def sales_insights(request):
+    """Comprehensive sales insights dashboard"""
+    # Average Order Value
+    avg_order_value = Order.objects.aggregate(
+        avg_value=Avg('total_amount')
+    )['avg_value'] or 0
+
+    # Most Recent Orders
+    recent_orders = Order.objects.order_by('-timestamp')[:10]
+
+    # Sales by Category
+    category_sales = Categories.objects.annotate(
+        total_revenue=Sum(
+            F('product__order_items__quantity') * F('product__order_items__price_per_unit')
+        )
+    )
+    # Top Selling Products
+    top_products = Product.objects.annotate(
+    total_sales=Sum('price')  # Sum of sales price for each product
+    ).order_by('-total_sales')
+
+    # Products Never Sold
+    never_sold_products = Product.objects.filter(quantity_sold=0)
+
+    # Monthly Sales Trend
+    monthly_sales = Order.objects.annotate(
+        month=TruncMonth('timestamp')
+    ).values('month').annotate(
+        total_sales=Sum('total_amount')
+    ).order_by('month')
+
+    context = {
+        'avg_order_value': avg_order_value,
+        'recent_orders': recent_orders,
+        'category_sales': category_sales,
+        'top_products': top_products,
+        'never_sold_products': never_sold_products,
+        'monthly_sales_trend': monthly_sales
+    }
+
+    return render(request, 'pos_system/sales_insights.html/', context)
+
+@login_required
+def customer_insights(request):
+    """Customer spending and order analytics"""
+    # Customer Lifetime Value
+    customer_lifetime_value = User.objects.annotate(
+        total_spending=Sum('order__total_amount')
+    )
+
+    # Order Count by Payment Method
+    payment_method_orders = PaymentMethod.objects.annotate(
+        order_count=Count('payments'),
+        total_revenue=Sum('payments__grand_total')
+    )
+
+    # Recent Customer Orders
+    recent_customer_orders = Order.objects.select_related('user').order_by('-timestamp')[:20]
+
+    context = {
+        'customer_lifetime_value': customer_lifetime_value,
+        'payment_method_orders': payment_method_orders,
+        'recent_customer_orders': recent_customer_orders
+    }
+
+    return render(request, 'pos_system/customer_insights.html', context)
+
+@login_required
+def inventory_performance(request):
+    """Inventory performance and stock insights"""
+    # Low Stock Products
+    low_stock_products = Inventory.objects.filter(quantity__lt=10)
+
+    # Product Stock vs Sales
+    product_stock_performance = Product.objects.annotate(
+        total_sales=Sum('orderitems__quantity'),
+        current_stock=F('inventory__quantity')
+    )
+
+    # Restock Recommendations
+    products_needing_restock = [
+        product for product in product_stock_performance 
+        if product.current_stock < (product.total_sales * 0.5)
+    ]
+
+    context = {
+        'low_stock_products': low_stock_products,
+        'product_stock_performance': product_stock_performance,
+        'restock_recommendations': products_needing_restock
+    }
+
+    return render(request, 'pos_system/inventory_performance.html', context)
