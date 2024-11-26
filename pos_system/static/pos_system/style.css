@@ -571,3 +571,33 @@ select:focus {
     text-align: center;
     margin-top: 10px;
 }
+
+/* Optional Styles for Product Performance Section */
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.card .btn {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+}
+
+.card .btn:hover {
+    background-color: #0056b3;
+}
