@@ -1,5 +1,5 @@
 from django import forms
-from .models import Categories, Product
+from .models import Categories, Product, Inventory
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -11,3 +11,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = "__all__"
 
+class InventoryForm(forms.ModelForm):
+    class Meta:
+        model = Inventory
+        fields = "__all__"

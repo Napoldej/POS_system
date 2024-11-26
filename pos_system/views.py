@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import generic
-from django.http import HttpResponse
 from .models import *
-from .forms import CategoryForm, ProductForm
+from .forms import CategoryForm, ProductForm, InventoryForm
 
 def home(request):
     number_category = len(Categories.objects.all())
@@ -90,5 +89,38 @@ def delete_product(request, product_id):
     return redirect('pos-system:product-list')
     
     
-        
+class InventoryList(generic.ListView):
+    template_name = 'pos_system/inventory_list.html'
+    context_object_name = 'inventory_list'
+    
+    def get_queryset(self):
+        return Inventory.objects.all()
+    
+def add_inventory(request):
+    if request.method == 'POST':
+        form = InventoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('pos-system:inventory-list')
+    else:
+        form = InventoryForm()
+    return render(request, 'pos_system/add_inventory.html')
+
+
+def edit_inventory(request, inventory_id):
+    inventory =  get_object_or_404(Inventory, id = inventory_id)
+    if request.method == 'POST':
+        form = InventoryForm(request.POST, instance=inventory)
+        if form.is_valid():
+            form.save()
+            return redirect('pos-system:inventory-list')
+    else:
+        form = InventoryForm(instance=inventory)
+    return render(request, 'pos_system/edit_inventory.html', {'form': form, 'inventory': inventory})
+
+
+def delete_inventory(request, inventory_id):
+    inventory = get_object_or_404(Inventory, id=inventory_id)
+    inventory.delete()
+    return redirect('pos-system:inventory-list')
     
