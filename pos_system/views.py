@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.views import generic
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .models import *
-from .forms import CategoryForm, ProductForm
+from .forms import CategoryForm, ProductForm, CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
+
 
 @login_required
 def home(request):
@@ -20,16 +22,10 @@ def home(request):
     return  render(request,'pos_system/home.html', context= context)
 
 
-@login_required
-def logout(request):
-    logout(request)
-    return redirect('pos-system:login')
-
-@login_required
 def signup(request):
     """Register a new user."""
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
             # get named fields from the form data
@@ -37,11 +33,13 @@ def signup(request):
             # password input field is named 'password1'
             raw_passwd = form.cleaned_data.get("password1")
             user = authenticate(username=username, password=raw_passwd)
-            login(request, user)
+            login(request, user)  # Log the user in
             return redirect('pos-system:home')
+        else:
+            print(form.errors)
     else:
         # create a user form and display it the signup page
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
 
 
@@ -53,27 +51,29 @@ class CategoryList(generic.ListView):
     def get_queryset(self):
         return Categories.objects.all()
     
-
 @login_required
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('pos-system:category-list')
+            return HttpResponseRedirect(reverse('pos-system:category-list')) 
     else:
         form = CategoryForm()
     return render(request, 'pos_system/add_category.html', {'form': form})
 
 @login_required
-
 def edit_category(request,category_id):
+    print(f"User Authenticated: {request.user.is_authenticated}, User: {request.user}")
+    print(request.method)
     category=  get_object_or_404(Categories, pk=category_id)
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
             form.save()
             return redirect('pos-system:category-list')
+        else:
+            return None
     else:
         form = CategoryForm(instance=category)
     return render(request, 'pos_system/edit_category.html', {'form': form, 'category': category})
