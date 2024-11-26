@@ -189,7 +189,7 @@ def add_product_to_order(request):
 
         # Update the total amount of the order
         order.total_amount = sum(
-            item.quantity * item.price_per_unit for item in order.orderitems.all()
+            item.quantity * item.price_per_unit for item in order.items.all()
         )
         order.save()
     
