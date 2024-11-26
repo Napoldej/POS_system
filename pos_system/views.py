@@ -7,7 +7,7 @@ from .forms import CategoryForm, ProductForm
 def home(request):
     number_category = len(Categories.objects.all())
     number_product = len(Product.objects.all())
-    number_order = len(Receipt.objects.all())
+    number_order = len(Payment.objects.all())
     context=  {
         'number_category': number_category,
         'number_product' : number_product,

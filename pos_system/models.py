@@ -50,9 +50,7 @@ class Queue(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='PENDING')
     created_at = models.DateTimeField(default=timezone.now)
 
-    
         
-    
     
 class Order(models.Model):
     employee = models.ForeignKey(Employees, on_delete= models.CASCADE)
