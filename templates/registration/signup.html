@@ -25,8 +25,23 @@
             {{ form.password2 }}
             <div class="error-message">{{ form.password2.errors }}</div>
         </div>
+        <div class="input-group">
+            <label for="id_username" class="form-label">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+            <div class="error-message">{{ form.username.errors }}</div>
+        </div>
+        <div class="input-group">
+            <label for="id_username" class="form-label">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+            <div class="error-message">{{ form.username.errors }}</div>
+        </div>
+        <div class="input-group">
+            <label for="id_username" class="form-label">{{ form.email.label }}</label>
+            {{ form.email }}
+            <div class="error-message">{{ form.username.errors }}</div>
+        </div>
         <div class="submit-button-container">
-            <button type="submit" class="btn-submit">Register</button>
+            <button type="submit" class="btn-submit"r>Register</button>
         </div>
     </div>
 </form>

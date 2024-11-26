@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -19,25 +20,6 @@ PRODUCT_CATEGORY = [
     ("BREAKFAST_ITEMS", "breakfast items"),
 ]
     
-class Employees(AbstractUser):
-    first_name = models.CharField(max_length=100, null=False, blank=False)
-    last_name = models.CharField(max_length=100, null=False, blank=False)
-    email = models.EmailField(unique= True , null = False, blank = False)
-    hired_data = models.DateField("Hired date",auto_now_add=True)
-    groups = models.ManyToManyField(
-        Group,
-        related_name="employees_groups",  
-        blank=True
-    )
-    user_permissions = models.ManyToManyField(
-        Permission,
-        related_name="employees_permissions",  
-        blank=True
-    )
-    
-    
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
     
     
 class Queue(models.Model):
@@ -53,13 +35,13 @@ class Queue(models.Model):
         
     
 class Order(models.Model):
-    employee = models.ForeignKey(Employees, on_delete= models.CASCADE)
+    user = models.ForeignKey(User, on_delete= models.CASCADE)
     queue = models.ForeignKey(Queue, on_delete= models.CASCADE)
     total_amount = models.DecimalField(max_digits= 6, decimal_places= 2, default= 0.00)
     timestamp = models.DateTimeField("Order At", auto_now_add= True)
     
     def __str__(self):
-        return (f"Order : {self.id},Employee : {self.employee}, Queue : {self.queue}," 
+        return (f"Order : {self.id},Employee : {self.user}, Queue : {self.queue}," 
                 f"total_amount : {self.total_amount}", 
                 f"timestamp: {self.timestamp}")
     
