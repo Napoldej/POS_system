@@ -24,7 +24,6 @@ def logout(request):
     logout(request)
     return redirect('pos-system:login')
 
-@login_required
 def signup(request):
     """Register a new user."""
     if request.method == "POST":
@@ -65,7 +64,6 @@ def add_category(request):
     return render(request, 'pos_system/add_category.html', {'form': form})
 
 @login_required
-
 def edit_category(request,category_id):
     category=  get_object_or_404(Categories, pk=category_id)
     if request.method == 'POST':
@@ -127,7 +125,8 @@ class InventoryList(generic.ListView):
     
     def get_queryset(self):
         return Inventory.objects.all()
-    
+
+@login_required
 def add_inventory(request):
     if request.method == 'POST':
         form = InventoryForm(request.POST)
@@ -136,9 +135,9 @@ def add_inventory(request):
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm()
-    return render(request, 'pos_system/add_inventory.html')
+    return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': Product.objects.all()})
 
-
+@login_required
 def edit_inventory(request, inventory_id):
     inventory =  get_object_or_404(Inventory, id = inventory_id)
     if request.method == 'POST':
@@ -150,7 +149,7 @@ def edit_inventory(request, inventory_id):
         form = InventoryForm(instance=inventory)
     return render(request, 'pos_system/edit_inventory.html', {'form': form, 'inventory': inventory})
 
-
+@login_required
 def delete_inventory(request, inventory_id):
     inventory = get_object_or_404(Inventory, id=inventory_id)
     inventory.delete()

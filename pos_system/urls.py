@@ -6,6 +6,7 @@ app_name = 'pos-system'
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('logout/', views.logout, name='logout'),
     path('add/category/', views.add_category, name='add_category'),
     path('category-list/', views.CategoryList.as_view(), name='category-list'),
     path('edit-category/<int:category_id>', views.edit_category, name='edit_category'),
