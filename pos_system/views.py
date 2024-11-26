@@ -26,7 +26,7 @@ def home(request):
         .order_by('-total_quantity_sold')
     top_performing_products = []
     for entry in product_performance_data:
-        product = Product.objects.get(id=entry['product_id'])
+        product = Product.objects.get(id=entry['product'])
         top_performing_products.append({
             'product_name': product.product_name,
             'total_sales': entry['total_sales'],
