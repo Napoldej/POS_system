@@ -3,6 +3,8 @@ from django.views import generic
 from django.http import HttpResponse
 from .models import *
 from .forms import CategoryForm, ProductForm
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login, logout
 
 def home(request):
     number_category = len(Categories.objects.all())
@@ -14,6 +16,30 @@ def home(request):
         'number_order' : number_order,
     }
     return  render(request,'pos_system/home.html', context= context)
+
+def logout(request):
+    logout(request)
+    return redirect('pos-system:login')
+
+
+def signup(request):
+    """Register a new user."""
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # get named fields from the form data
+            username = form.cleaned_data.get("username")
+            # password input field is named 'password1'
+            raw_passwd = form.cleaned_data.get("password1")
+            user = authenticate(username=username, password=raw_passwd)
+            login(request, user)
+            return redirect('pos-system:home')
+    else:
+        # create a user form and display it the signup page
+        form = UserCreationForm()
+    return render(request, "registration/signup.html", {"form": form})
+
 
 
 class CategoryList(generic.ListView):
@@ -88,6 +114,10 @@ def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product.delete()
     return redirect('pos-system:product-list')
+
+
+
+
     
     
         
