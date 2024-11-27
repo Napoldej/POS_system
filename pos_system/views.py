@@ -4,7 +4,8 @@ from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
 from django.utils import timezone
 from .models import *
-from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationForm
+from .forms import CategoryForm, ProductForm, InventoryForm, \
+    CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -13,7 +14,6 @@ from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from decimal import Decimal
 from datetime import datetime
-
 
 
 @login_required
@@ -27,9 +27,9 @@ def home(request):
 
     product_performance_data = OrderItems.objects.values('product') \
         .annotate(
-            total_sales=Sum(F('quantity') * F('price_per_unit')),
-            total_quantity_sold=Sum('quantity')
-        ) \
+        total_sales=Sum(F('quantity') * F('price_per_unit')),
+        total_quantity_sold=Sum('quantity')
+    ) \
         .order_by('-total_quantity_sold')
 
     top_performing_products = []
@@ -60,6 +60,7 @@ def logout(request):
     logout(request)
     return redirect('pos-system:login')
 
+
 def signup(request):
     """Register a new user."""
     if request.method == "POST":
@@ -84,24 +85,26 @@ def signup(request):
 class CategoryList(generic.ListView):
     template_name = 'pos_system/list_category.html'
     context_object_name = 'category_list'
-    
+
     def get_queryset(self):
         return Categories.objects.all()
-    
+
+
 @login_required
 def add_category(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('pos-system:category-list')) 
+            return HttpResponseRedirect(reverse('pos-system:category-list'))
     else:
         form = CategoryForm()
     return render(request, 'pos_system/add_category.html', {'form': form})
 
+
 @login_required
-def edit_category(request,category_id):
-    category=  get_object_or_404(Categories, pk=category_id)
+def edit_category(request, category_id):
+    category = get_object_or_404(Categories, pk=category_id)
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
         if form.is_valid():
@@ -111,7 +114,9 @@ def edit_category(request,category_id):
             return None
     else:
         form = CategoryForm(instance=category)
-    return render(request, 'pos_system/edit_category.html', {'form': form, 'category': category})
+    return render(request, 'pos_system/edit_category.html',
+                  {'form': form, 'category': category})
+
 
 @login_required
 def delete_category(request, category_id):
@@ -119,14 +124,15 @@ def delete_category(request, category_id):
     category.delete()
     return redirect('pos-system:category-list')
 
+
 class ProductList(generic.ListView):
     template_name = 'pos_system/product_list.html'
     context_object_name = 'product_list'
-    
+
     def get_queryset(self):
         return Product.objects.all()
-    
-    
+
+
 @login_required
 def add_product(request):
     if request.method == 'POST':
@@ -137,11 +143,11 @@ def add_product(request):
     else:
         form = ProductForm()
     return render(request, 'pos_system/add_product.html', {'form': form})
-    
+
 
 @login_required
 def edit_product(request, product_id):
-    product =  get_object_or_404(Product, id = product_id)
+    product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
         form = ProductForm(request.POST, instance=product)
         if form.is_valid():
@@ -151,14 +157,15 @@ def edit_product(request, product_id):
             print("win")
     else:
         form = ProductForm(instance=product)
-    return render(request, 'pos_system/edit_product.html', {'form': form, 'product': product})
+    return render(request, 'pos_system/edit_product.html',
+                  {'form': form, 'product': product})
+
 
 @login_required
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     product.delete()
     return redirect('pos-system:product-list')
-
 
 
 @login_required
@@ -170,14 +177,15 @@ def add_product_to_order(request):
     user = request.user
     # Check if the user already has a pending order
     order = Order.objects.filter(user=user, queue__status='PENDING').first()
-    if Order.objects.filter(user=  user, queue__status='PENDING').exists():
-        order = Order.objects.filter(user =user , queue__status='PENDING').first()
+    if Order.objects.filter(user=user, queue__status='PENDING').exists():
+        order = Order.objects.filter(user=user,
+                                     queue__status='PENDING').first()
     else:
         queue = Queue.objects.create(status='PENDING')
         order = Order.objects.create(user=user, queue=queue)
 
     products = Product.objects.all()
-    order_list = OrderItems.objects.filter(order = order)
+    order_list = OrderItems.objects.filter(order=order)
 
     if request.method == "POST":
         product_id = request.POST.get("product_id")
@@ -189,7 +197,8 @@ def add_product_to_order(request):
             order_item, created = OrderItems.objects.get_or_create(
                 order=order,
                 product=product,
-                defaults={'quantity': quantity, 'price_per_unit': price_per_unit}
+                defaults={'quantity': quantity,
+                          'price_per_unit': price_per_unit}
             )
             if not created:
                 # Update the quantity if the product already exists in the order
@@ -201,11 +210,10 @@ def add_product_to_order(request):
             item.quantity * item.price_per_unit for item in order.items.all()
         )
         order.save()
-    tax_rate = float('0.07') # Example: 10% tax
+    tax_rate = float('0.07')  # Example: 10% tax
     tax_amount = float(order.total_amount) * tax_rate
     grand_total = float(order.total_amount) + tax_amount
 
-    
     return render(request, 'pos_system/pos.html', {
         'order': order,
         'products': products,
@@ -213,22 +221,24 @@ def add_product_to_order(request):
         'tax_amount': tax_amount,
         'grand_total': grand_total,
     })
-        
-def delete_item(request,item_id):
-    order_item = OrderItems.objects.get(id = item_id)
+
+
+def delete_item(request, item_id):
+    order_item = OrderItems.objects.get(id=item_id)
     order_item.delete()
     return redirect('pos-system:create-order')
 
+
 def checkout(request, order_id):
-    order = Order.objects.get(id = order_id)
+    order = Order.objects.get(id=order_id)
     queue = order.queue
     queue.status = "COMPLETE"
     queue.save()
     product_list = []
-    order_item = OrderItems.objects.filter(order = order)
+    order_item = OrderItems.objects.filter(order=order)
     for item in order_item:
         product_list.append(item.product)
-        inventory = Inventory.objects.get(product = item.product)
+        inventory = Inventory.objects.get(product=item.product)
         inventory.quantity -= item.quantity
         if inventory.quantity <= 0:
             item.product.stock_status = False
@@ -238,13 +248,18 @@ def checkout(request, order_id):
     tax_amount = order.total_amount * tax_rate
     grand_total_value = order.total_amount + tax_amount
     paymnet_method = PaymentMethod.objects.create(method_name='Cash')
-    payment = Payment.objects.create(order=order, method=paymnet_method, queue = order.queue,
-                                    tax_amount = tax_amount, grand_total = grand_total_value , tax = tax_rate)
+    payment = Payment.objects.create(order=order, method=paymnet_method,
+                                     queue=order.queue,
+                                     tax_amount=tax_amount,
+                                     grand_total=grand_total_value,
+                                     tax=tax_rate)
     order.save()
     payment.save()
     return render(request, 'pos_system/transaction.html', {'order': order,
-                                                        'order_item': order_item,
-                                                            'payment': payment, 'product_list': product_list})
+                                                           'order_item': order_item,
+                                                           'payment': payment,
+                                                           'product_list': product_list})
+
 
 @login_required
 def process_checkout(request):
@@ -253,23 +268,24 @@ def process_checkout(request):
     Creates a Payment record and updates inventory
     """
     user = request.user
-    
+
     # Find the current pending order
     order = Order.objects.filter(user=user, queue__status='PENDING').first()
-    
+
     if not order:
         messages.error(request, "No active order found.")
         return redirect('pos-system:pos')
-    
+
     try:
         # Calculate tax (using the same tax rate as in add_product_to_order view)
         tax_rate = Decimal('0.1')  # 10% tax
         tax_amount = order.total_amount * tax_rate
         grand_total = order.total_amount + tax_amount
-        
+
         # Create a default payment method if not exists
-        payment_method, _ = PaymentMethod.objects.get_or_create(method_name='CASH')
-        
+        payment_method, _ = PaymentMethod.objects.get_or_create(
+            method_name='CASH')
+
         # Create Payment record
         payment = Payment.objects.create(
             order=order,
@@ -279,32 +295,34 @@ def process_checkout(request):
             tax_amount=tax_amount,
             tax=float(tax_rate * 100)
         )
-        
+
         # Update product inventory and sales
         for item in order.items.all():
             product = item.product
-            
+
             # Update product inventory
             inventory = Inventory.objects.filter(product=product).first()
             if inventory:
                 inventory.quantity -= item.quantity
                 inventory.save()
-            
+
             # Update product sales statistics
             product.quantity_sold += item.quantity
             product.sales_total += Decimal(item.total_amount)
             product.save()
-        
+
         # Mark the order as completed
         order.queue.status = 'COMPLETED'
         order.queue.save()
-        
+
         # Redirect to payment detail or receipt
-        return redirect('pos-system:home')  # You can change this to a receipt page
-    
+        return redirect(
+            'pos-system:home')  # You can change this to a receipt page
+
     except Exception as e:
         messages.error(request, f"Checkout failed: {str(e)}")
         return redirect('pos-system:create-order')
+
 
 @login_required
 def remove_order_item(request, item_id):
@@ -314,25 +332,25 @@ def remove_order_item(request, item_id):
     try:
         order_item = get_object_or_404(OrderItems, id=item_id)
         order = order_item.order
-        
+
         # Remove the item
         order_item.delete()
-        
+
         # Recalculate order total
         order.total_amount = sum(
             item.quantity * item.price_per_unit for item in order.items.all()
         )
         order.save()
-        
+
         return redirect('pos-system:pos')
-    
+
     except Exception as e:
         messages.error(request, f"Failed to remove item: {str(e)}")
-        return redirect('pos-system:create-order')        
+        return redirect('pos-system:create-order')
+
+    # @login_required
 
 
-
-# @login_required
 # def payment_detail(request, payment_id):
 #     """
 #     Displays the payment details for a specific Payment object.
@@ -340,14 +358,15 @@ def remove_order_item(request, item_id):
 #     payment = get_object_or_404(Payment, id=payment_id)
 
 #     return render(request, 'pos_system/payment_detail.html', {'payment': payment})
-    
-    
+
+
 class InventoryList(generic.ListView):
     template_name = 'pos_system/inventory_list.html'
     context_object_name = 'inventory_list'
-    
+
     def get_queryset(self):
         return Inventory.objects.all()
+
 
 @login_required
 def add_inventory(request):
@@ -358,24 +377,28 @@ def add_inventory(request):
             try:
                 product = Product.objects.get(id=product_id)
             except Product.DoesNotExist:
-                form.add_error('product_name', 'Selected product does not exist.')
-                return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': Product.objects.all()})
+                form.add_error('product_name',
+                               'Selected product does not exist.')
+                return render(request, 'pos_system/add_inventory.html',
+                              {'form': form,
+                               'products': Product.objects.all()})
             product.stock_status = True
             product.save()
             inventory = form.save(commit=False)
             inventory.product = product
-            inventory.save()     
+            inventory.save()
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm()
 
     products = Product.objects.all()
-    return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': products})
+    return render(request, 'pos_system/add_inventory.html',
+                  {'form': form, 'products': products})
 
 
 @login_required
 def edit_inventory(request, inventory_id):
-    inventory =  get_object_or_404(Inventory, id=inventory_id)
+    inventory = get_object_or_404(Inventory, id=inventory_id)
     if request.method == 'POST':
         form = InventoryForm(request.POST, instance=inventory)
         if form.is_valid():
@@ -383,14 +406,17 @@ def edit_inventory(request, inventory_id):
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm(instance=inventory)
-    return render(request, 'pos_system/edit_inventory.html', {'form': form, 'inventory': inventory})
+    return render(request, 'pos_system/edit_inventory.html',
+                  {'form': form, 'inventory': inventory})
+
 
 @login_required
 def delete_inventory(request, inventory_id):
     inventory = get_object_or_404(Inventory, id=inventory_id)
     inventory.delete()
     return redirect('pos-system:inventory-list')
-    
+
+
 @login_required
 def sales_insights(request):
     """Comprehensive sales insights dashboard"""
@@ -402,18 +428,17 @@ def sales_insights(request):
     # Most Recent Orders
     recent_orders = Order.objects.order_by('-timestamp')[:10]
 
-
     # Sales by Category
     category_sales = Categories.objects.annotate(
         total_revenue=Sum(
-            F('product__order_items__quantity') * F('product__order_items__price_per_unit')
+            F('product__order_items__quantity') * F(
+                'product__order_items__price_per_unit')
         ),
     )
     # Top Selling Products
     top_products = Product.objects.annotate(
-    total_sales=Sum('price')  # Sum of sales price for each product
+        total_sales=Sum('price')  # Sum of sales price for each product
     ).order_by('-total_sales')
-    
 
     # Products Never Sold
     never_sold_products = Product.objects.filter(quantity_sold=0)
@@ -436,6 +461,7 @@ def sales_insights(request):
 
     return render(request, 'pos_system/sales_insights.html/', context)
 
+
 @login_required
 def customer_insights(request):
     """Customer spending and order analytics"""
@@ -451,7 +477,8 @@ def customer_insights(request):
     )
 
     # Recent Customer Orders
-    recent_customer_orders = Order.objects.select_related('user').order_by('-timestamp')[:20]
+    recent_customer_orders = Order.objects.select_related('user').order_by(
+        '-timestamp')[:20]
 
     context = {
         'customer_lifetime_value': customer_lifetime_value,
@@ -460,6 +487,7 @@ def customer_insights(request):
     }
 
     return render(request, 'pos_system/customer_insights.html', context)
+
 
 @login_required
 def inventory_performance(request):
@@ -475,7 +503,7 @@ def inventory_performance(request):
 
     # Restock Recommendations
     products_needing_restock = [
-        product for product in product_stock_performance 
+        product for product in product_stock_performance
         if product.current_stock < (product.total_sales * 0.5)
     ]
 
