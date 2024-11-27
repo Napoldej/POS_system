@@ -9,17 +9,17 @@ from .forms import CategoryForm, ProductForm, InventoryForm, \
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Sum, Avg, Count
-from django.db.models.functions import TruncMonth
+from django.db.models import F, Sum, Avg, Count, Value, DecimalField
+from django.db.models.functions import TruncMonth, Coalesce, TruncDate, Cast
 from django.contrib import messages
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 @login_required
 def home(request):
     """
-    Displays the homepage with high-level statistics and top-performing products.
+    Displays the homepage with comprehensive statistics and insights.
 
     Parameters:
         request: HttpRequest object representing the current request.
@@ -27,38 +27,74 @@ def home(request):
     Returns:
         HttpResponse: Rendered homepage with context data.
     """
+    # Time-based calculations
+    today = timezone.now().date()
+    week_ago = today - timezone.timedelta(days=7)
+    month_ago = today - timezone.timedelta(days=30)
+
+    # Basic Counts
     number_category = Categories.objects.count()
     number_product = Product.objects.count()
-    number_order = Payment.objects.count()
+    number_orders = Order.objects.count()
 
-    today = timezone.now().date()
-    number_today_order = Payment.objects.filter(date_added__date=today).count()
+    # Sales and Performance Analysis
+    # Today's sales
+    today_sales = Payment.objects.filter(date_added__date=today).aggregate(
+        total_sales=Sum('grand_total', default=0)
+    )['total_sales']
 
-    product_performance_data = OrderItems.objects.values('product') \
-        .annotate(
-        total_sales=Sum(F('quantity') * F('price_per_unit')),
-        total_quantity_sold=Sum('quantity')
-    ) \
-        .order_by('-total_quantity_sold')
+    # Weekly sales trend
+    weekly_sales = Payment.objects.annotate(
+        sale_date=TruncDate('date_added')
+    ).values('sale_date').annotate(
+        daily_sales=Sum('grand_total', default=0)
+    ).order_by('sale_date')
 
-    top_performing_products = []
-    for entry in product_performance_data:
-        try:
-            product = Product.objects.get(id=entry['product'])
-            top_performing_products.append({
-                'product_name': product.product_name,
-                'total_sales': entry['total_sales'],
-                'total_quantity_sold': entry['total_quantity_sold'],
-            })
-        except Product.DoesNotExist:
-            continue
+    # Top Performing Products
+    top_products = Product.objects.annotate(
+        total_quantity_sold=Sum('order_items__quantity', default=0),
+        total_sales=Sum(
+            Cast('order_items__quantity', output_field=DecimalField()) * 
+            Cast('order_items__price_per_unit', output_field=DecimalField()),
+            default=0
+        )
+    ).order_by('-total_quantity_sold')[:5]
+
+    # Category Performance
+    category_performance = Categories.objects.annotate(
+        total_products=Count('product'),
+        total_sales=Sum(
+            Cast('product__order_items__quantity', output_field=DecimalField()) * 
+            Cast('product__order_items__price_per_unit', output_field=DecimalField()),
+            default=0
+        )
+    ).order_by('-total_sales')[:3]
+
+    # Inventory Analysis
+    low_stock_products = Product.objects.filter(stock_status=False).count()
+
+    # Payment Method Analysis
+    payment_method_breakdown = PaymentMethod.objects.annotate(
+        total_transactions=Count('payments'),
+        total_amount=Sum('payments__grand_total', default=0)
+    )
+
+    # Order Status Analysis
+    order_status_breakdown = Queue.objects.values('status').annotate(
+        total_orders=Count('order')
+    )
 
     context = {
         'number_category': number_category,
         'number_product': number_product,
-        'number_order': number_order,
-        'number_today_order': number_today_order,
-        'top_performing_products': top_performing_products
+        'number_orders': number_orders,
+        'today_sales': today_sales,
+        'weekly_sales': list(weekly_sales),
+        'top_products': top_products,
+        'category_performance': category_performance,
+        'low_stock_products': low_stock_products,
+        'payment_method_breakdown': payment_method_breakdown,
+        'order_status_breakdown': order_status_breakdown,
     }
 
     return render(request, 'pos_system/home.html', context)
@@ -295,7 +331,18 @@ def add_product_to_order(request):
         product_id = request.POST.get("product_id")
         quantity = int(request.POST.get("quantity"))
         product = Product.objects.get(id=product_id)
+        inventory = Inventory.objects.filter(product=product).first()
         price_per_unit = product.price
+
+        # Check if there is no inventory for the product
+        if not inventory:
+            messages.error(request, "Sorry, this product is currently out of stock.")
+            return render(request, 'pos_system/pos.html', {
+                'order': order,
+                'products': products,
+                'order_item': order_list,
+            })
+
         if quantity > 0:
             # Check if the product already exists in the order
             order_item, created = OrderItems.objects.get_or_create(
@@ -565,7 +612,18 @@ def add_inventory(request):
             product.save()
             inventory = form.save(commit=False)
             inventory.product = product
-            inventory.save()
+
+            # Check if inventory already exists for the product
+            existing_inventory = Inventory.objects.filter(product=product)
+            if existing_inventory.exists():
+                # Add the new quantity to the existing inventory
+                existing_inventory = existing_inventory.first()
+                existing_inventory.quantity += inventory.quantity
+                existing_inventory.save()
+            else:
+                # Save the new inventory
+                inventory.save()
+
             return redirect('pos-system:inventory-list')
     else:
         form = InventoryForm()
@@ -743,10 +801,15 @@ def inventory_performance(request):
         current_stock=F('inventory__quantity')
     )
 
+    # Handle null values for current_stock
+    product_stock_performance = product_stock_performance.annotate(
+        current_stock=Coalesce('current_stock', Value(0))
+    )
+
     # Restock Recommendations
     products_needing_restock = [
         product for product in product_stock_performance
-        if product.current_stock < (product.total_sales * 0.5)
+        if product.current_stock < 10
     ]
 
     context = {

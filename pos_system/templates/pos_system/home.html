@@ -1,8 +1,8 @@
 {% extends 'pos_system/base.html' %}
 
-{% block title %}Home Page{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
-{% block header %}Home Page{% endblock %}
+{% block header %}Home{% endblock %}
 
 {% block content %}
 {% if messages %}
@@ -14,56 +14,162 @@
     {% endfor %}
 </div>
 {% endif %}
-<!-- Existing Cards for Categories, Products, and Orders -->
-<div class="row my-5">
+
+<!-- Performance Overview Cards -->
+<div class="row my-4">
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
-            <a href="{% url 'pos-system:category-list' %}">
-                <h5 class="card-title">Categories</h5>
-            </a>
+            <h5 class="card-title">Categories</h5>
             <p class="card-text">{{ number_category }}</p>
-            <small class="text-muted">Overall Count of Categories</small>
+            <small class="text-muted">Total Categories</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
-            <a href="{% url 'pos-system:product-list' %}">
-                <h5 class="card-title">Products</h5>
-            </a>
+            <h5 class="card-title">Products</h5>
             <p class="card-text">{{ number_product }}</p>
-            <small class="text-muted">Overall Count of Products</small>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-light shadow-sm p-3">
-            <h5 class="card-title">Transactions</h5>
-            <p class="card-text">{{ number_order }}</p>
-            <small class="text-muted">Today's Transactions</small>
+            <small class="text-muted">Total Products</small>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
             <h5 class="card-title">Today's Sales</h5>
-            <p class="card-text">{{ number_today_order }}</p>
+            <p class="card-text">${{ today_sales|floatformat:2 }}</p>
             <small class="text-muted">Total Sales Today</small>
         </div>
     </div>
-</div>
-
-<!-- Product Performance Section -->
-<div class="my-5">
-    <h3>Top Performing Products</h3>
-    <div class="row">
-        {% for product in top_performing_products %}
-        <div class="col-md-4">
-            <div class="card bg-light shadow-sm p-3">
-                <h5 class="card-title">{{ product.product_name }}</h5>
-                <p class="card-text">Total Sales: ${{ product.total_sales }}</p>
-                <p class="card-text">Quantity Sold: {{ product.total_quantity_sold }}</p>
-            </div>
+    <div class="col-md-3">
+        <div class="card bg-light shadow-sm p-3">
+            <h5 class="card-title">Low Stock Alerts</h5>
+            <p class="card-text">{{ low_stock_products }}</p>
+            <small class="text-muted">Products Needing Restocking</small>
         </div>
-        {% endfor %}
     </div>
 </div>
 
+<!-- Top Performing Products -->
+<div class="card my-4">
+    <div class="card-header">
+        <h4>Top Performing Products</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for product in top_products %}
+            <div class="col-md-4">
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.product_name }}</h5>
+                        <p class="card-text">
+                            Total Sales: ${{ product.total_sales|floatformat:2 }}<br>
+                            Quantity Sold: {{ product.total_quantity_sold }}<br>
+                            Price: ${{ product.price|floatformat:2 }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Category Performance -->
+<div class="card my-4">
+    <div class="card-header">
+        <h4>Category Performance</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for category in category_performance %}
+            <div class="col-md-4">
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.category_name }}</h5>
+                        <p class="card-text">
+                            Total Sales: ${{ category.total_sales|floatformat:2 }}<br>
+                            Total Products: {{ category.total_products }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Weekly Sales Trend -->
+<div class="card my-4">
+    <div class="card-header">
+        <h4>Weekly Sales Trend</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Sales</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in weekly_sales %}
+                <tr>
+                    <td>{{ sale.sale_date }}</td>
+                    <td>${{ sale.daily_sales|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Payment Method Breakdown -->
+<div class="card my-4">
+    <div class="card-header">
+        <h4>Payment Method Breakdown</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Payment Method</th>
+                    <th>Total Transactions</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for method in payment_method_breakdown %}
+                <tr>
+                    <td>{{ method.method_name }}</td>
+                    <td>{{ method.total_transactions }}</td>
+                    <td>${{ method.total_amount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Order Status Breakdown -->
+<div class="card my-4">
+    <div class="card-header">
+        <h4>Order Status Breakdown</h4>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Total Orders</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for status in order_status_breakdown %}
+                <tr>
+                    <td>{{ status.status }}</td>
+                    <td>{{ status.total_orders }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}
