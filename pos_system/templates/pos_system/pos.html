@@ -22,14 +22,16 @@
                     >
                         <option value="" disabled selected>Choose a Product</option>
                         {% for product in products %}
-                            <option 
-                                value="{{ product.id }}" 
-                                data-price="{{ product.price_per_unit }}"
-                                data-stock="{{ product.current_stock }}"
-                            >
-                                {{ product.product_name }} - ${{ product.price_per_unit }} 
-                                (Stock: {{ product.current_stock }})
-                            </option>
+                            {% if product.current_stock%}
+                                <option 
+                                    value="{{ product.id }}" 
+                                    data-price="{{ product.price_per_unit }}"
+                                    data-stock="{{ product.current_stock }}"
+                                >
+                                    {{ product.product_name }} - ${{ product.price_per_unit }} 
+                                    (Stock: {{ product.current_stock }})
+                                </option>
+                            {% endif %}
                         {% endfor %}
                     </select>
                 </div>
@@ -78,8 +80,8 @@
                             <tr class="border-b">
                                 <td class="py-2 px-4">{{ item.quantity }}</td>
                                 <td class="py-2 px-4">{{ item.product.product_name }}</td>
-                                <td class="py-2 px-4 text-right">${{ item.product.price_per_unit }}</td>
-                                <td class="py-2 px-4 text-right">${{ item.total_price }}</td>
+                                <td class="py-2 px-4 text-right">${{ item.product.price }}</td>
+                                <td class="py-2 px-4 text-right">${{ item.total_amount }}</td>
                                 <td class="py-2 px-4 text-center">
                                     <button 
                                         class="text-red-500 hover:text-red-700 remove-item" 

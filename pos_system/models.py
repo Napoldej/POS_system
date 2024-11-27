@@ -86,6 +86,11 @@ class OrderItems(models.Model):
     def save(self, *args, **kwargs):
         self.price_per_unit = self.product.price  # Ensure the price is up-to-date
         super().save(*args, **kwargs)
+        
+    @property
+    def total_amount(self):
+        total = self.quantity * float(self.price_per_unit)
+        return str(total)
 
     def __str__(self):
         return f"Order: {self.order.id}, Product: {self.product.product_name}, Quantity: {self.quantity}, Price per unit: {self.price_per_unit}"
