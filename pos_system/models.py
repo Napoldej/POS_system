@@ -42,6 +42,7 @@ class Order(models.Model):
     def get_orders_by_date_range(cls, start_date, end_date):
         return cls.objects.filter(timestamp__range=[start_date, end_date])
     
+    
     def __str__(self):
         return f"Order : {self.id}"
     

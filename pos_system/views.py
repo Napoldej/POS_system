@@ -90,8 +90,6 @@ def add_category(request):
 
 @login_required
 def edit_category(request,category_id):
-    print(f"User Authenticated: {request.user.is_authenticated}, User: {request.user}")
-    print(request.method)
     category=  get_object_or_404(Categories, pk=category_id)
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
@@ -116,6 +114,7 @@ class ProductList(generic.ListView):
     
     def get_queryset(self):
         return Product.objects.all()
+    
     
 @login_required
 def add_product(request):
@@ -159,18 +158,15 @@ def add_product_to_order(request):
     """
     user = request.user
     # Check if the user already has a pending order
-    existing_order = Order.objects.filter(user=user, queue__status='PENDING').first()
-    if existing_order:
-        order = existing_order
+    order = Order.objects.filter(user=user, queue__status='PENDING').first()
+    if Order.objects.filter(user=  user, queue__status='PENDING').exists():
+        order = Order.objects.filter(user =user , queue__status='PENDING').first()
     else:
         queue = Queue.objects.create(status='PENDING')
         order = Order.objects.create(user=user, queue=queue)
 
     products = Product.objects.all()
-    order_list = OrderItems.objects.all()
-    tax_rate = Decimal('0.7') # Example: 10% tax
-    tax_amount = order.total_amount * tax_rate
-    grand_total = order.total_amount + tax_amount
+    order_list = OrderItems.objects.filter(order = order)
 
     if request.method == "POST":
         product_id = request.POST.get("product_id")
@@ -194,6 +190,10 @@ def add_product_to_order(request):
             item.quantity * item.price_per_unit for item in order.items.all()
         )
         order.save()
+    tax_rate = float('0.07') # Example: 10% tax
+    tax_amount = float(order.total_amount) * tax_rate
+    grand_total = float(order.total_amount) + tax_amount
+
     
     return render(request, 'pos_system/pos.html', {
         'order': order,
@@ -203,7 +203,37 @@ def add_product_to_order(request):
         'grand_total': grand_total,
     })
         
+def delete_item(request,item_id):
+    order_item = OrderItems.objects.get(id = item_id)
+    order_item.delete()
+    return redirect('pos-system:create-order')
 
+def checkout(request, order_id):
+    order = Order.objects.get(id = order_id)
+    queue = order.queue
+    queue.status = "COMPLETE"
+    queue.save()
+    product_list = []
+    order_item = OrderItems.objects.filter(order = order)
+    for item in order_item:
+        product_list.append(item.product)
+        inventory = Inventory.objects.get(product = item.product)
+        inventory.quantity -= item.quantity
+        if inventory.quantity <= 0:
+            item.product.stock_status = False
+            item.product.save()
+        inventory.save()
+    tax_rate = Decimal('0.07')
+    tax_amount = order.total_amount * tax_rate
+    grand_total_value = order.total_amount + tax_amount
+    paymnet_method = PaymentMethod.objects.create(method_name='Cash')
+    payment = Payment.objects.create(order=order, method=paymnet_method, queue = order.queue,
+                                    tax_amount = tax_amount, grand_total = grand_total_value , tax = tax_rate)
+    order.save()
+    payment.save()
+    return render(request, 'pos_system/transaction.html', {'order': order,
+                                                        'order_item': order_item,
+                                                            'payment': payment, 'product_list': product_list})
 
         
 
@@ -236,6 +266,8 @@ def add_inventory(request):
             except Product.DoesNotExist:
                 form.add_error('product_name', 'Selected product does not exist.')
                 return render(request, 'pos_system/add_inventory.html', {'form': form, 'products': Product.objects.all()})
+            product.stock_status = True
+            product.save()
             inventory = form.save(commit=False)
             inventory.product = product
             inventory.save()     
@@ -276,16 +308,18 @@ def sales_insights(request):
     # Most Recent Orders
     recent_orders = Order.objects.order_by('-timestamp')[:10]
 
+
     # Sales by Category
     category_sales = Categories.objects.annotate(
         total_revenue=Sum(
             F('product__order_items__quantity') * F('product__order_items__price_per_unit')
-        )
+        ),
     )
     # Top Selling Products
     top_products = Product.objects.annotate(
     total_sales=Sum('price')  # Sum of sales price for each product
     ).order_by('-total_sales')
+    
 
     # Products Never Sold
     never_sold_products = Product.objects.filter(quantity_sold=0)
