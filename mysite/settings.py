@@ -30,15 +30,6 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-SECRET_KEY = config('SECRET_KEY', default='fake-secret-key') 
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', 
-                       default= 'localhost,127.0.0.1,testserver', 
-                       ).split(',')
-
 # Application definition
 
 INSTALLED_APPS = [
