@@ -21,5 +21,10 @@ urlpatterns = [
     path('delete/inventory/<int:inventory_id>', views.delete_inventory, name='delete_inventory'),
     path('sales-insights/', views.sales_insights, name='sales-insights'),
     path('transaction/<int:order_id>', views.checkout, name='checkout'),
-    path('item/delete/<int:item_id>', views.delete_item, name='delete_item')
+    path('item/delete/<int:item_id>', views.delete_item, name='delete_item'),
+    path('customer-insights/', views.customer_insights, name='customer-insights'),
+    # path("checkout/", views.checkout.as_view(), name="checkout"),
+    path('inventory-insights/', views.inventory_performance, name='inventory-insights'),
+    path('remove-order-item/<int:item_id>/', views.remove_order_item, name='remove-order-item'),
+    path('process-checkout/', views.process_checkout, name='process-checkout'),
 ]

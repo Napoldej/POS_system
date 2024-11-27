@@ -5,7 +5,15 @@
 {% block header %}Home Page{% endblock %}
 
 {% block content %}
-
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 <!-- Existing Cards for Categories, Products, and Orders -->
 <div class="row my-5">
     <div class="col-md-3">
@@ -19,7 +27,9 @@
     </div>
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
-            <h5 class="card-title">Products</h5>
+            <a href="{% url 'pos-system:product-list' %}">
+                <h5 class="card-title">Products</h5>
+            </a>
             <p class="card-text">{{ number_product }}</p>
             <small class="text-muted">Overall Count of Products</small>
         </div>
@@ -34,7 +44,7 @@
     <div class="col-md-3">
         <div class="card bg-light shadow-sm p-3">
             <h5 class="card-title">Today's Sales</h5>
-            <p class="card-text">0</p>
+            <p class="card-text">{{ number_today_order }}</p>
             <small class="text-muted">Total Sales Today</small>
         </div>
     </div>

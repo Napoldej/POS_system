@@ -2,47 +2,58 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 from django.http import HttpResponse, HttpResponseRedirect
+from django.utils import timezone
 from .models import *
 from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationForm
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Sum, Avg
+from django.db.models import F, Sum, Avg, Count
 from django.db.models.functions import TruncMonth
+from django.contrib import messages
 from decimal import Decimal
+from datetime import datetime
 
 
 
 @login_required
 def home(request):
-    number_category = len(Categories.objects.all())
-    number_product = len(Product.objects.all())
-    number_order = len(Payment.objects.all())
-    
+    number_category = Categories.objects.count()
+    number_product = Product.objects.count()
+    number_order = Payment.objects.count()
+
+    today = timezone.now().date()
+    number_today_order = Payment.objects.filter(date_added__date=today).count()
+
     product_performance_data = OrderItems.objects.values('product') \
         .annotate(
             total_sales=Sum(F('quantity') * F('price_per_unit')),
             total_quantity_sold=Sum('quantity')
         ) \
         .order_by('-total_quantity_sold')
+
     top_performing_products = []
     for entry in product_performance_data:
-        product = Product.objects.get(id=entry['product'])
-        top_performing_products.append({
-            'product_name': product.product_name,
-            'total_sales': entry['total_sales'],
-            'total_quantity_sold': entry['total_quantity_sold'],
-        })
+        try:
+            product = Product.objects.get(id=entry['product'])
+            top_performing_products.append({
+                'product_name': product.product_name,
+                'total_sales': entry['total_sales'],
+                'total_quantity_sold': entry['total_quantity_sold'],
+            })
+        except Product.DoesNotExist:
+            continue
 
-    # Returning the context for rendering
     context = {
         'number_category': number_category,
         'number_product': number_product,
         'number_order': number_order,
+        'number_today_order': number_today_order,
         'top_performing_products': top_performing_products
     }
 
     return render(request, 'pos_system/home.html', context)
+
 
 @login_required
 def logout(request):
@@ -235,7 +246,90 @@ def checkout(request, order_id):
                                                         'order_item': order_item,
                                                             'payment': payment, 'product_list': product_list})
 
+@login_required
+def process_checkout(request):
+    """
+    Process the checkout for the current order
+    Creates a Payment record and updates inventory
+    """
+    user = request.user
+    
+    # Find the current pending order
+    order = Order.objects.filter(user=user, queue__status='PENDING').first()
+    
+    if not order:
+        messages.error(request, "No active order found.")
+        return redirect('pos-system:pos')
+    
+    try:
+        # Calculate tax (using the same tax rate as in add_product_to_order view)
+        tax_rate = Decimal('0.1')  # 10% tax
+        tax_amount = order.total_amount * tax_rate
+        grand_total = order.total_amount + tax_amount
         
+        # Create a default payment method if not exists
+        payment_method, _ = PaymentMethod.objects.get_or_create(method_name='CASH')
+        
+        # Create Payment record
+        payment = Payment.objects.create(
+            order=order,
+            queue=order.queue,
+            method=payment_method,
+            grand_total=grand_total,
+            tax_amount=tax_amount,
+            tax=float(tax_rate * 100)
+        )
+        
+        # Update product inventory and sales
+        for item in order.items.all():
+            product = item.product
+            
+            # Update product inventory
+            inventory = Inventory.objects.filter(product=product).first()
+            if inventory:
+                inventory.quantity -= item.quantity
+                inventory.save()
+            
+            # Update product sales statistics
+            product.quantity_sold += item.quantity
+            product.sales_total += Decimal(item.total_amount)
+            product.save()
+        
+        # Mark the order as completed
+        order.queue.status = 'COMPLETED'
+        order.queue.save()
+        
+        # Redirect to payment detail or receipt
+        return redirect('pos-system:home')  # You can change this to a receipt page
+    
+    except Exception as e:
+        messages.error(request, f"Checkout failed: {str(e)}")
+        return redirect('pos-system:create-order')
+
+@login_required
+def remove_order_item(request, item_id):
+    """
+    Remove a specific item from the current order
+    """
+    try:
+        order_item = get_object_or_404(OrderItems, id=item_id)
+        order = order_item.order
+        
+        # Remove the item
+        order_item.delete()
+        
+        # Recalculate order total
+        order.total_amount = sum(
+            item.quantity * item.price_per_unit for item in order.items.all()
+        )
+        order.save()
+        
+        return redirect('pos-system:pos')
+    
+    except Exception as e:
+        messages.error(request, f"Failed to remove item: {str(e)}")
+        return redirect('pos-system:create-order')        
+
 
 
 # @login_required
@@ -375,7 +469,7 @@ def inventory_performance(request):
 
     # Product Stock vs Sales
     product_stock_performance = Product.objects.annotate(
-        total_sales=Sum('orderitems__quantity'),
+        total_sales=Sum('order_items__quantity'),
         current_stock=F('inventory__quantity')
     )
 
@@ -391,4 +485,4 @@ def inventory_performance(request):
         'restock_recommendations': products_needing_restock
     }
 
-    return render(request, 'pos_system/inventory_performance.html', context)
+    return render(request, 'pos_system/inventory_insights.html', context)

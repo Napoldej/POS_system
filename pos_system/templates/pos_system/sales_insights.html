@@ -3,59 +3,93 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-    <h1>Sales Insights</h1>
+<div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-blue-600 text-center">Sales Insights</h1>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h3>Average Order Value</h3>
-            <p>${{ avg_order_value|floatformat:2 }}</p>
+    <!-- Metrics Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Average Order Value -->
+        <div class="card bg-gradient-to-r from-green-100 via-white to-green-50 p-6 shadow-md rounded-lg hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-green-600 mb-4">Average Order Value</h3>
+            <p class="text-4xl font-extrabold text-gray-800">${{ avg_order_value|floatformat:2 }}</p>
         </div>
-        <div class="col-md-6">
-            <h3>Top Products</h3>
-            <ul>
+
+        <!-- Top Products -->
+        <div class="card bg-gradient-to-r from-purple-100 via-white to-purple-50 p-6 shadow-md rounded-lg hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-purple-600 mb-4">Top Products</h3>
+            <ul class="space-y-2">
                 {% for product in top_products %}
-                <li>{{ product.product_name }}: ${{ product.total_sales|floatformat:2 }}</li>
+                <li class="flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">
+                        <i class="fas fa-star text-yellow-400 mr-2"></i>{{ product.product_name }}
+                    </span>
+                    <span class="badge bg-blue-100 text-blue-600 px-2 py-1 rounded">${{ product.total_sales|floatformat:2 }}</span>
+                </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h3>Sales by Category</h3>
-            <table>
-                {% for category in category_sales %}
-                <tr>
-                    <td>{{ category.category_name }}</td>
-                    <td>${{ category.total_revenue|floatformat:2 }}</td>
-                </tr>
-                {% endfor %}
+    <!-- Category Sales and Recent Orders Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Sales by Category -->
+        <div class="card bg-gradient-to-r from-red-100 via-white to-red-50 p-6 shadow-md rounded-lg hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-red-600 mb-4">Sales by Category</h3>
+            <table class="inventory-table w-full">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 text-left">Category</th>
+                        <th class="py-2 px-4 text-right">Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in category_sales %}
+                    <tr class="even:bg-gray-50">
+                        <td class="py-2 px-4">{{ category.category_name }}</td>
+                        <td class="py-2 px-4 text-right font-semibold text-green-600">${{ category.total_revenue|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
-        <div class="col-md-6">
-            <h3>Recent Orders</h3>
-            <table>
-                {% for order in recent_orders %}
-                <tr>
-                    <td>{{ order.user.username }}</td>
-                    <td>${{ order.total_amount|floatformat:2 }}</td>
-                    <td>{{ order.timestamp }}</td>
-                </tr>
-                {% endfor %}
+
+        <!-- Recent Orders -->
+        <div class="card bg-gradient-to-r from-blue-100 via-white to-blue-50 p-6 shadow-md rounded-lg hover:shadow-lg transition">
+            <h3 class="text-xl font-bold text-blue-600 mb-4">Recent Orders</h3>
+            <table class="inventory-table w-full">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 text-left">Customer</th>
+                        <th class="py-2 px-4 text-right">Order Total</th>
+                        <th class="py-2 px-4 text-right">Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr class="even:bg-gray-50">
+                        <td class="py-2 px-4">{{ order.user.username }}</td>
+                        <td class="py-2 px-4 text-right font-semibold">${{ order.total_amount|floatformat:2 }}</td>
+                        <td class="py-2 px-4 text-right text-sm text-gray-600">
+                            {{ order.timestamp|date:"M d, Y H:i" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
             </table>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <h3>Products Never Sold</h3>
-            <ul>
-                {% for product in never_sold_products %}
-                <li>{{ product.product_name }}</li>
-                {% endfor %}
-            </ul>
-        </div>
+    <!-- Products Never Sold Section -->
+    <div class="card bg-white p-6 shadow-md rounded-lg hover:shadow-lg transition mt-6">
+        <h3 class="text-xl font-bold text-red-600 mb-4">Products Never Sold</h3>
+        <ul class="list-disc list-inside text-gray-700">
+            {% for product in never_sold_products %}
+            <li class="flex items-center">
+                <i class="fas fa-box-open text-gray-400 mr-2"></i>
+                <span>{{ product.product_name }}</span>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 </div>
 {% endblock %}
