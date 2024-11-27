@@ -137,6 +137,8 @@ def edit_product(request, product_id):
         if form.is_valid():
             form.save()
             return redirect('pos-system:product-list')
+        else:
+            print("win")
     else:
         form = ProductForm(instance=product)
     return render(request, 'pos_system/edit_product.html', {'form': form, 'product': product})
@@ -165,7 +167,7 @@ def add_product_to_order(request):
         order = Order.objects.create(user=user, queue=queue)
 
     products = Product.objects.all()
-    order_item = OrderItems.objects.all()
+    order_list = OrderItems.objects.all()
     tax_rate = Decimal('0.7') # Example: 10% tax
     tax_amount = order.total_amount * tax_rate
     grand_total = order.total_amount + tax_amount
@@ -196,7 +198,7 @@ def add_product_to_order(request):
     return render(request, 'pos_system/pos.html', {
         'order': order,
         'products': products,
-        'order_item': order_item,
+        'order_item': order_list,
         'tax_amount': tax_amount,
         'grand_total': grand_total,
     })

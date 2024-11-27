@@ -11,7 +11,7 @@ class CategoryForm(forms.ModelForm):
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = "__all__"
+        exclude = ('quantity_sold', 'sales_total',)
 
 
 class CustomUserCreationForm(UserCreationForm):
