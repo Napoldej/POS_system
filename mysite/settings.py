@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,6 +29,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+
+SECRET_KEY = config('SECRET_KEY', default='fake-secret-key') 
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', 
+                       default= 'localhost,127.0.0.1,testserver', 
+                       ).split(',')
 
 # Application definition
 

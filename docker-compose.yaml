@@ -1,0 +1,28 @@
+services:
+  db:
+    image: "postgres:17"
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - backend_network
+
+  app:
+    build:
+     context: .
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    networks:
+      - backend_network
+
+networks:
+  backend_network:  
+    driver: bridge
