@@ -8,7 +8,7 @@ from .forms import CategoryForm, ProductForm, InventoryForm, CustomUserCreationF
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
-from django.db.models import F, Sum, Avg
+from django.db.models import F, Sum, Avg, Count
 from django.db.models.functions import TruncMonth
 from django.contrib import messages
 from decimal import Decimal
@@ -434,7 +434,7 @@ def inventory_performance(request):
 
     # Product Stock vs Sales
     product_stock_performance = Product.objects.annotate(
-        total_sales=Sum('orderitems__quantity'),
+        total_sales=Sum('order_items__quantity'),
         current_stock=F('inventory__quantity')
     )
 
@@ -450,4 +450,4 @@ def inventory_performance(request):
         'restock_recommendations': products_needing_restock
     }
 
-    return render(request, 'pos_system/inventory_performance.html', context)
+    return render(request, 'pos_system/inventory_insights.html', context)

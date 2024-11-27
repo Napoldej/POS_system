@@ -1,0 +1,83 @@
+{% extends 'pos_system/base.html' %}
+{% block header %}Customer Insights{% endblock %}
+{% block content %}
+<div class="inventory-container mx-auto p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Customer Lifetime Value Card -->
+        <div class="card bg-white p-6">
+            <h2 class="card-title text-blue-600">Customer Lifetime Value</h2>
+            <div class="overflow-x-auto">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th class="text-right">Total Spending</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customer_lifetime_value %}
+                            <tr>
+                                <td>{{ customer.username }}</td>
+                                <td class="text-right font-semibold">${{ customer.total_spending|floatformat:2 }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-gray-500">No customer spending data</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment Method Analytics Card -->
+        <div class="card bg-white p-6">
+            <h2 class="card-title text-green-600">Payment Method Performance</h2>
+            <div class="space-y-4">
+                {% for method in payment_method_orders %}
+                    <div class="alert bg-gray-50 p-4 rounded-md">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold">{{ method.method_name }}</span>
+                            <div class="text-right">
+                                <div class="text-sm text-gray-600">Orders: {{ method.order_count }}</div>
+                                <div class="font-bold text-blue-600">${{ method.total_revenue|floatformat:2 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-center text-gray-500">No payment method data</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Customer Orders Card -->
+        <div class="card bg-white p-6 md:col-span-2 lg:col-span-1">
+            <h2 class="card-title text-purple-600">Recent Customer Orders</h2>
+            <div class="overflow-x-auto">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th class="text-right">Order Total</th>
+                            <th class="text-right">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_customer_orders %}
+                            <tr>
+                                <td>{{ order.user.username }}</td>
+                                <td class="text-right">${{ order.total_amount|floatformat:2 }}</td>
+                                <td class="text-right text-sm text-gray-600">{{ order.timestamp|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-gray-500">No recent orders</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

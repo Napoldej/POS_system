@@ -1,0 +1,87 @@
+{% extends 'pos_system/base.html' %}
+{% block header %}Inventory Performance{% endblock %}
+{% block content %}
+<div class="inventory-container mx-auto p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Low Stock Products Card -->
+        <div class="card bg-white p-6">
+            <h2 class="card-title text-red-600">Low Stock Products</h2>
+            <div class="overflow-x-auto">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-right">Current Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in low_stock_products %}
+                            <tr>
+                                <td>{{ product.product.product_name }}</td>
+                                <td class="text-right text-red-600 font-semibold">{{ product.quantity }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-gray-500">No low stock products</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Product Stock vs Sales Card -->
+        <div class="card bg-white p-6">
+            <h2 class="card-title text-blue-600">Product Performance</h2>
+            <div class="overflow-x-auto">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-right">Total Sales</th>
+                            <th class="text-right">Current Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in product_stock_performance %}
+                            <tr>
+                                <td>{{ product.product_name }}</td>
+                                <td class="text-right">{{ product.total_sales|default:0 }}</td>
+                                <td class="text-right {% if product.current_stock < 10 %}text-red-600{% endif %}">
+                                    {{ product.current_stock|default:0 }}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center text-gray-500">No product performance data</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Restock Recommendations Card -->
+        <div class="card bg-white p-6">
+            <h2 class="card-title text-green-600">Restock Recommendations</h2>
+            <div>
+                {% for product in restock_recommendations %}
+                    <div class="alert bg-yellow-50 p-4 rounded-md flex justify-between">
+                        <span>
+                            <strong>{{ product.product_name }}</strong>
+                            <div class="text-sm text-gray-600">
+                                Current Stock: {{ product.current_stock|default:0 }}
+                            </div>
+                        </span>
+                        <span class="bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full text-xs">
+                            Restock Needed
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-center text-gray-500">No restock recommendations at this time</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
