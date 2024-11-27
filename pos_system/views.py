@@ -18,6 +18,15 @@ from datetime import datetime
 
 @login_required
 def home(request):
+    """
+    Displays the homepage with high-level statistics and top-performing products.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponse: Rendered homepage with context data.
+    """
     number_category = Categories.objects.count()
     number_product = Product.objects.count()
     number_order = Payment.objects.count()
@@ -57,12 +66,29 @@ def home(request):
 
 @login_required
 def logout(request):
+    """
+    Logs out the current user and redirects to the login page.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponseRedirect: Redirect to the login page.
+    """
     logout(request)
     return redirect('pos-system:login')
 
 
 def signup(request):
-    """Register a new user."""
+    """
+    Handles user registration and logs in the user upon successful signup.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponse: Rendered signup page with a form or redirect to the homepage.
+    """
     if request.method == "POST":
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
@@ -83,6 +109,13 @@ def signup(request):
 
 
 class CategoryList(generic.ListView):
+    """
+    A view to list all categories.
+
+    Attributes:
+        template_name: Template used to display the list.
+        context_object_name: Context variable name for categories in the template.
+    """
     template_name = 'pos_system/list_category.html'
     context_object_name = 'category_list'
 
@@ -92,6 +125,15 @@ class CategoryList(generic.ListView):
 
 @login_required
 def add_category(request):
+    """
+    Adds a new category to the system.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponse: Rendered form or redirect to category list.
+    """
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
@@ -104,6 +146,16 @@ def add_category(request):
 
 @login_required
 def edit_category(request, category_id):
+    """
+    Edits an existing category.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+        category_id: ID of the category to edit.
+
+    Returns:
+        HttpResponse: Rendered form or redirect to category list.
+    """
     category = get_object_or_404(Categories, pk=category_id)
     if request.method == 'POST':
         form = CategoryForm(request.POST, instance=category)
@@ -120,12 +172,29 @@ def edit_category(request, category_id):
 
 @login_required
 def delete_category(request, category_id):
+    """
+    Deletes a category.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+        category_id: ID of the category to delete.
+
+    Returns:
+        HttpResponseRedirect: Redirect to category list.
+    """
     category = get_object_or_404(Categories, id=category_id)
     category.delete()
     return redirect('pos-system:category-list')
 
 
 class ProductList(generic.ListView):
+    """
+    A view to list all products.
+
+    Attributes:
+        template_name: Template used to display the list.
+        context_object_name: Context variable name for products in the template.
+    """
     template_name = 'pos_system/product_list.html'
     context_object_name = 'product_list'
 
@@ -135,6 +204,15 @@ class ProductList(generic.ListView):
 
 @login_required
 def add_product(request):
+    """
+    Adds a new product to the system.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponse: Rendered form or redirect to product list.
+    """
     if request.method == 'POST':
         form = ProductForm(request.POST)
         if form.is_valid():
@@ -147,6 +225,16 @@ def add_product(request):
 
 @login_required
 def edit_product(request, product_id):
+    """
+    Edits an existing product.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+        product_id: ID of the product to edit.
+
+    Returns:
+        HttpResponse: Rendered form or redirect to product list.
+    """
     product = get_object_or_404(Product, id=product_id)
     if request.method == 'POST':
         form = ProductForm(request.POST, instance=product)
@@ -163,6 +251,16 @@ def edit_product(request, product_id):
 
 @login_required
 def delete_product(request, product_id):
+    """
+    Deletes a product.
+
+    Parameters:
+        request: HttpRequest object representing the current request.
+        product_id: ID of the product to delete.
+
+    Returns:
+        HttpResponseRedirect: Redirect to product list.
+    """
     product = get_object_or_404(Product, id=product_id)
     product.delete()
     return redirect('pos-system:product-list')
@@ -173,6 +271,12 @@ def add_product_to_order(request):
     """
     This view creates an order if none exists for the user and adds products to the order.
     Upon completion, it redirects to the Payment object for processing payment details.
+
+    Parameters:
+    request: HttpRequest object representing the current request.
+
+    Returns:
+        HttpResponse: Rendered order details page.
     """
     user = request.user
     # Check if the user already has a pending order
@@ -224,12 +328,52 @@ def add_product_to_order(request):
 
 
 def delete_item(request, item_id):
+    """
+    Deletes a specific item from an order.
+
+    This function retrieves an `OrderItems` instance based on the provided `item_id`,
+    deletes it from the database, and redirects the user to the order creation page.
+
+    Args:
+        request: The HTTP request object.
+        item_id (int): The ID of the `OrderItems` instance to be deleted.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the 'create-order' page.
+
+    Raises:
+        OrderItems.DoesNotExist: If no `OrderItems` instance is found with the given `item_id`.
+    """
     order_item = OrderItems.objects.get(id=item_id)
     order_item.delete()
     return redirect('pos-system:create-order')
 
 
 def checkout(request, order_id):
+    """
+    Processes the checkout for a given order, updates inventory, calculates taxes,
+    and creates a payment record.
+
+    This function performs the following steps:
+    1. Marks the order's queue as "COMPLETE."
+    2. Updates the inventory for each product in the order and adjusts stock status
+       if the inventory runs out.
+    3. Calculates the tax amount and grand total for the order.
+    4. Creates a payment record with the specified payment method (default: Cash).
+    5. Saves the changes and renders the transaction details.
+
+    Args:
+        request: The HTTP request object.
+        order_id (int): The ID of the order to be checked out.
+
+    Returns:
+        HttpResponse: Renders the 'transaction.html' template with the order details,
+                      order items, payment details, and product list.
+
+    Raises:
+        Order.DoesNotExist: If the order with the specified ID does not exist.
+        Inventory.DoesNotExist: If the inventory record for a product is not found.
+    """
     order = Order.objects.get(id=order_id)
     queue = order.queue
     queue.status = "COMPLETE"
@@ -264,8 +408,20 @@ def checkout(request, order_id):
 @login_required
 def process_checkout(request):
     """
-    Process the checkout for the current order
-    Creates a Payment record and updates inventory
+    Processes the checkout for the current order.
+
+    This function:
+    - Calculates tax and grand total for the order.
+    - Creates a payment record for the order.
+    - Updates inventory levels and product sales statistics.
+    - Marks the order as completed.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the homepage or a receipt page upon success,
+                              or redirects back to the order creation page on failure.
     """
     user = request.user
 
@@ -327,7 +483,14 @@ def process_checkout(request):
 @login_required
 def remove_order_item(request, item_id):
     """
-    Remove a specific item from the current order
+    Removes a specific item from the current order.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+        item_id (int): The ID of the order item to be removed.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the POS page or the order creation page upon failure.
     """
     try:
         order_item = get_object_or_404(OrderItems, id=item_id)
@@ -361,6 +524,13 @@ def remove_order_item(request, item_id):
 
 
 class InventoryList(generic.ListView):
+    """
+    A view to list all inventory records.
+
+    Attributes:
+        template_name (str): The template to render.
+        context_object_name (str): The name of the context variable for inventory items.
+    """
     template_name = 'pos_system/inventory_list.html'
     context_object_name = 'inventory_list'
 
@@ -370,6 +540,15 @@ class InventoryList(generic.ListView):
 
 @login_required
 def add_inventory(request):
+    """
+    Adds a new inventory record.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered form for adding inventory or a redirect to the inventory list.
+    """
     if request.method == 'POST':
         form = InventoryForm(request.POST)
         if form.is_valid():
@@ -398,6 +577,16 @@ def add_inventory(request):
 
 @login_required
 def edit_inventory(request, inventory_id):
+    """
+    Edits an existing inventory record.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+        inventory_id (int): The ID of the inventory record to edit.
+
+    Returns:
+        HttpResponse: Rendered form for editing inventory or a redirect to the inventory list.
+    """
     inventory = get_object_or_404(Inventory, id=inventory_id)
     if request.method == 'POST':
         form = InventoryForm(request.POST, instance=inventory)
@@ -412,6 +601,16 @@ def edit_inventory(request, inventory_id):
 
 @login_required
 def delete_inventory(request, inventory_id):
+    """
+    Deletes an inventory record.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+        inventory_id (int): The ID of the inventory record to delete.
+
+    Returns:
+        HttpResponseRedirect: Redirects to the inventory list.
+    """
     inventory = get_object_or_404(Inventory, id=inventory_id)
     inventory.delete()
     return redirect('pos-system:inventory-list')
@@ -419,6 +618,23 @@ def delete_inventory(request, inventory_id):
 
 @login_required
 def sales_insights(request):
+    """
+    Displays a comprehensive sales insights dashboard.
+
+    Includes:
+    - Average order value.
+    - Most recent orders.
+    - Sales by category.
+    - Top-selling products.
+    - Products never sold.
+    - Monthly sales trends.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered dashboard with sales insights data.
+    """
     """Comprehensive sales insights dashboard"""
     # Average Order Value
     avg_order_value = Order.objects.aggregate(
@@ -464,7 +680,20 @@ def sales_insights(request):
 
 @login_required
 def customer_insights(request):
-    """Customer spending and order analytics"""
+    """
+    Provides customer spending and order analytics.
+
+    Includes:
+    - Customer lifetime value.
+    - Order count by payment method.
+    - Recent customer orders.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered dashboard with customer insights data.
+    """
     # Customer Lifetime Value
     customer_lifetime_value = User.objects.annotate(
         total_spending=Sum('order__total_amount')
@@ -491,7 +720,20 @@ def customer_insights(request):
 
 @login_required
 def inventory_performance(request):
-    """Inventory performance and stock insights"""
+    """
+    Displays inventory performance and stock insights.
+
+    Includes:
+    - Low stock products.
+    - Product stock versus sales performance.
+    - Restock recommendations.
+
+    Parameters:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        HttpResponse: Rendered dashboard with inventory performance data.
+    """
     # Low Stock Products
     low_stock_products = Inventory.objects.filter(quantity__lt=10)
 
