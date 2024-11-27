@@ -20,4 +20,6 @@ urlpatterns = [
     path('edit-inventory/<int:inventory_id>', views.edit_inventory, name='edit_inventory'),
     path('delete/inventory/<int:inventory_id>', views.delete_inventory, name='delete_inventory'),
     path('sales-insights/', views.sales_insights, name='sales-insights'),
+    path('remove-order-item/<int:item_id>/', views.remove_order_item, name='remove-order-item'),
+    path('process-checkout/', views.process_checkout, name='process-checkout'),
 ]
