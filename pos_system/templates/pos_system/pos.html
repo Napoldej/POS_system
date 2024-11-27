@@ -91,6 +91,7 @@
                                 <td class="py-2 px-4 text-right">฿{{ item.product.price }}</td>
                                 <td class="py-2 px-4 text-right">฿{{ item.total_amount }}</td>
                                 <td class="py-2 px-4 text-center">
+                                <a href = "{% url 'pos-system:delete_item' item.id%}">
                                     <button 
                                         class="text-red-500 hover:text-red-700 remove-item" 
                                         data-item-id="{{ item.id }}"
@@ -98,6 +99,7 @@
                                         Remove
                                     </button>
                                 </td>
+                                </a>
                             </tr>
                         {% empty %}
                             <tr>
@@ -129,12 +131,14 @@
                 </div>
 
                 <!-- Checkout Button -->
+                <a href = "{% url 'pos-system:checkout' order.id%}">
                 <button 
                     id="checkout-btn"
                     class="w-full mt-4 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300"
                 >
                     Proceed to Checkout
                 </button>
+                </a>
             </div>
         </div>
     </div>
