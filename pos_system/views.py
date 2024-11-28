@@ -277,8 +277,6 @@ def edit_product(request, product_id):
         if form.is_valid():
             form.save()
             return redirect('pos-system:product-list')
-        else:
-            print("win")
     else:
         form = ProductForm(instance=product)
     return render(request, 'pos_system/edit_product.html',
