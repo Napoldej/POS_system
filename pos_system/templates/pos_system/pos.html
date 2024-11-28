@@ -132,12 +132,21 @@
 
                 <!-- Checkout Button -->
                 <a href = "{% url 'pos-system:checkout' order.id%}">
-                <button 
-                    id="checkout-btn"
-                    class="btn-submit w-full mt-4 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300"
-                >
-                    Proceed to Checkout
-                </button>
+                    {% if not order_item %}
+                    <button 
+                        id="checkout-btn"
+                        class="btn-submit w-full mt-4 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300" disabled
+                    >
+                        Proceed to Checkout
+                    </button>
+                    {% else %}
+                    <button 
+                        id="checkout-btn"
+                        class="btn-submit w-full mt-4 bg-green-500 text-white py-3 rounded-md hover:bg-green-600 transition duration-300"
+                    >
+                        Proceed to Checkout
+                    </button>
+                    {% endif %}
                 </a>
             </div>
         </div>
